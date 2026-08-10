@@ -92,7 +92,7 @@
 
 - 32 字节结构：`[0:3]='KDX'` `[3]=0x1c` `[4:8]=校验值` `[8]=enableMix` `[9]=0xff` `[10]=eye` `[11]=parallax_adj` `[12]=focus_plane` `[13]=near_plane` `[14]=0x64` `[15:31]=0`
 - **`[4:8]` 是参数区的自定义校验值**（经逆向验证：15 组同参数配置 ID 完全相同，常见哈希全部不匹配，算法在厂商生成器手中）——因此无法自行生成参数，只能复用官方完整串
-- 本项目内置 **119 条官方配置串**（覆盖全部官方参数组合），换包名写入即可 100% 生效
+- 本项目内置 **119 条官方配置串**（覆盖全部官方参数组合），换包名写入即可生效
 - 深度调节：`setprop persist.sys.3deffect (0-20)`
 
 ### 2. 3D 应用 —— SBS 转立体接口
@@ -113,7 +113,7 @@ Android 5.1 上 `getRunningTasks`/`getRunningAppProcesses` 对第三方应用受
 
 ### 4. 进程守护（可选 root）
 - **Magisk 模块**（`assets/kdx3d_guard.zip`）：`service.sh` 开机执行常驻循环——检查开关状态 → 被杀自动 `am startservice` 拉起 + `oom_score_adj=-17` 防杀
-- **努比亚白名单**：root 直接写 `cn.nubia.processmanager` 的 `process_white.db`
+- **进程白名单**：root 直接写 `cn.nubia.processmanager` 的 `process_white.db`
 
 ---
 
