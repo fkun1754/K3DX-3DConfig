@@ -2,7 +2,7 @@
 
 > **Unified 3D configuration tool for naked-eye 3D phones** (KDX / Kangde Xin technology)
 
-**Version: 1.0** ｜ **Language: English**（[中文](./README.md)）
+**Language: English**（[中文](./README.md)）
 
 ---
 
