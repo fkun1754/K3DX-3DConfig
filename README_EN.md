@@ -130,10 +130,6 @@ python build.py
 
 ---
 
-## 📦 Version History
-
-- **v1.0** (current): first open-source release
-
 ---
 
 ## 💬 Contact
