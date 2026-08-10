@@ -83,7 +83,7 @@ Naked-eye 3D phones based on KDX (Kangde Xin) technology have fragmented 3D feat
 ## 🧠 Implementation (Summary)
 
 ### 1. 3D Games — `.gles.cfg` mechanism
-KDX libGLES injection layer (`libGLES_kdx.so`) reads `/sdcard/.gles.cfg` at game startup:
+KDX libGLES injection layer (`libGLES_kdx.so`) reads `/storage/emulated/0/.gles.cfg` at game startup:
 
 ```
 package_name  32-byte config token (Base64)
@@ -91,7 +91,7 @@ package_name  32-byte config token (Base64)
 
 - 32-byte layout: `[0:3]='KDX'` `[3]=0x1c` `[4:8]=checksum` `[8]=enableMix` `[9]=0xff` `[10]=eye` `[11]=parallax_adj` `[12]=focus_plane` `[13]=near_plane` `[14]=0x64` `[15:31]=0`
 - **`[4:8]` is a vendor-proprietary checksum of the parameter area** (verified by reverse engineering: 15 same-parameter configs share identical IDs; no standard hash matches) — tokens can only be reused from official configs
-- This project embeds **119 official tokens** (covering all official parameter combinations); rewriting with another package name works 100%
+- This project embeds **119 official tokens** (covering all official parameter combinations); rewriting with another package name works
 - Depth: `setprop persist.sys.3deffect (0-20)`
 
 ### 2. 3D Apps — SBS-to-3D interface
@@ -112,7 +112,7 @@ On Android 5.1 `getRunningTasks`/`getRunningAppProcesses` are restricted for thi
 
 ### 4. Process guard (optional root)
 - **Magisk module** (`assets/kdx3d_guard.zip`): `service.sh` runs a persistent loop at boot — checks the toggle, auto-restarts the service if killed, sets `oom_score_adj=-17`
-- **nubia whitelist**: root writes `process_white.db` of `cn.nubia.processmanager`
+- **process whitelist**: root writes `process_white.db` of `cn.nubia.processmanager`
 
 ---
 
