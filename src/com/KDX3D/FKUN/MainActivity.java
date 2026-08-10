@@ -72,7 +72,65 @@ public class MainActivity extends Activity {
     private List<AppInfo> appList = new ArrayList<AppInfo>();
     private AppAdapter adapter;
     private Map<String, byte[]> cfgMap = new LinkedHashMap<String, byte[]>();
-    private final Map<String, Drawable> iconCache = new HashMap<String, Drawable>(); // pkg -> 32字节
+    private final Map<String, Drawable> iconCache = new HashMap<String, Drawable>();
+
+    /** 配置文件（App 应用文件夹 config 目录：覆盖更新保留，写入无权限问题） */
+    private static final String CONFIG_FILE =
+            "/data/data/com.KDX3D.FKUN/files/config/kdx3d_config.json";
+
+    /** 从配置文件恢复所有配置到 prefs（覆盖更新后配置不丢） */
+    private void loadConfigFromFile() {
+        try {
+            java.io.File f = new java.io.File(CONFIG_FILE);
+            if (!f.exists()) return;
+            java.io.FileInputStream fis = new java.io.FileInputStream(f);
+            byte[] buf = new byte[(int) f.length()];
+            fis.read(buf);
+            fis.close();
+            org.json.JSONObject o = new org.json.JSONObject(new String(buf, "UTF-8"));
+            SharedPreferences.Editor ed =
+                    getSharedPreferences("floatbar", MODE_PRIVATE).edit();
+            java.util.Iterator<String> it = o.keys();
+            while (it.hasNext()) {
+                String k = it.next();
+                Object val = o.opt(k);
+                if (val instanceof Integer) ed.putInt(k, ((Integer) val).intValue());
+                else if (val instanceof Boolean) ed.putBoolean(k, ((Boolean) val).booleanValue());
+                else if (val instanceof String) ed.putString(k, (String) val);
+                else if (val instanceof Long) ed.putLong(k, ((Long) val).longValue());
+            }
+            ed.apply();
+            Log.i(TAG, "已从配置文件恢复: " + CONFIG_FILE);
+        } catch (Exception e) {
+            Log.e(TAG, "配置文件读取失败", e);
+        }
+    }
+
+    /** 保存所有 App 配置到配置文件 */
+    private void saveConfigToFile() {
+        try {
+            SharedPreferences prefs = getSharedPreferences("floatbar", MODE_PRIVATE);
+            // getAll() 会阻塞等待 SharedPreferences 文件异步加载完成（避免启动时读到空）
+            java.util.Map<String, ?> all = prefs.getAll();
+            org.json.JSONObject o = new org.json.JSONObject();
+            for (java.util.Map.Entry<String, ?> e : all.entrySet()) {
+                String k = e.getKey();
+                if (k.startsWith("app3d_") || k.startsWith("fb_") || k.startsWith("depth_")
+                        || k.startsWith("tmpl_") || k.equals("fb_all")
+                        || k.equals("guard_enabled")) {
+                    o.put(k, e.getValue());
+                }
+            }
+            if (o.length() == 0) return;
+            java.io.File f = new java.io.File(CONFIG_FILE);
+            if (f.getParentFile() != null) f.getParentFile().mkdirs();
+            java.io.FileOutputStream fos = new java.io.FileOutputStream(f);
+            fos.write(o.toString().getBytes("UTF-8"));
+            fos.close();
+        } catch (Exception e) {
+            Log.e(TAG, "配置文件保存失败", e);
+        }
+    } // pkg -> 32字节
     private Map<String, Integer> pkgSelIdx = new LinkedHashMap<String, Integer>(); // pkg -> 保存时选的模板索引
     private boolean showSystem = false;
 
@@ -164,6 +222,10 @@ public class MainActivity extends Activity {
         // 下拉刷新
         setupPullRefresh();
 
+        // 从配置文件恢复所有配置（覆盖更新后配置不丢）
+        loadConfigFromFile();
+        // 启动即同步一次（创建/更新配置文件，确保持久化）
+        saveConfigToFile();
         loadCfg();
         loadApps();
 
@@ -427,6 +489,12 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        saveConfigToFile();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         // 使用情况访问权限：没授权就继续申请（每次回到应用都检查）
@@ -674,6 +742,7 @@ public class MainActivity extends Activity {
                         .apply();
                 app.hasCfg = true;
                 adapter.notifyDataSetChanged();
+                saveConfigToFile();
                 Toast.makeText(this, "已按默认配置保存3D游戏（" + def[1] + "，深度12）", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
@@ -695,6 +764,7 @@ public class MainActivity extends Activity {
             adapter.notifyDataSetChanged();
             // 立即应用默认视角2（写 .3d.properties + send2sf）
             applyViewPoint(2);
+            saveConfigToFile();
             Toast.makeText(this, "已按默认配置保存3D应用（视角2）", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             android.util.Log.e(TAG, "默认应用配置保存失败", e);
@@ -768,7 +838,8 @@ public class MainActivity extends Activity {
                         }
                         app.hasApp3d = true;
                         adapter.notifyDataSetChanged();
-                                Toast.makeText(MainActivity.this, "3D应用配置已保存", Toast.LENGTH_SHORT).show();
+                                saveConfigToFile();
+                        Toast.makeText(MainActivity.this, "3D应用配置已保存", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setNegativeButton("删除配置", new DialogInterface.OnClickListener() {
@@ -778,6 +849,7 @@ public class MainActivity extends Activity {
                         app.hasApp3d = false;
                         adapter.notifyDataSetChanged();
                                 com.wztech.service3d.Service3D.set3DEnabled(false);
+                        saveConfigToFile();
                         Toast.makeText(MainActivity.this, "已删除3D应用配置", Toast.LENGTH_SHORT).show();
                     }
                 })
@@ -932,7 +1004,8 @@ public class MainActivity extends Activity {
                                     .putBoolean("fb_all", cbAllFb.isChecked()).apply();
                             app.hasCfg = true;
                             adapter.notifyDataSetChanged();
-                                        Toast.makeText(MainActivity.this, "已写入，重启游戏后生效", Toast.LENGTH_SHORT).show();
+                                        saveConfigToFile();
+                            Toast.makeText(MainActivity.this, "已写入，重启游戏后生效", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(MainActivity.this, "写入失败！", Toast.LENGTH_LONG).show();
                         }
@@ -949,7 +1022,8 @@ public class MainActivity extends Activity {
                                     .remove("tmpl_" + app.pkg).apply();
                             app.hasCfg = false;
                             adapter.notifyDataSetChanged();
-                                        Toast.makeText(MainActivity.this, "已删除，重启游戏后生效", Toast.LENGTH_SHORT).show();
+                                        saveConfigToFile();
+                            Toast.makeText(MainActivity.this, "已删除，重启游戏后生效", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(MainActivity.this, "删除失败", Toast.LENGTH_LONG).show();
                         }
