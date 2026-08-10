@@ -92,7 +92,15 @@ public class MainActivity extends Activity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                showTypeDialog(appList.get(position));
+                AppInfo app = appList.get(position);
+                // 已有配置：直接进入对应配置界面；未配置/双配置 → 弹类型选择窗
+                if (app.hasCfg && !app.hasApp3d) {
+                    showParamDialog(app);
+                } else if (app.hasApp3d && !app.hasCfg) {
+                    showApp3dDialog(app);
+                } else {
+                    showTypeDialog(app);
+                }
             }
         });
 
@@ -120,7 +128,7 @@ public class MainActivity extends Activity {
                         exportGuardZip();
                         new AlertDialog.Builder(MainActivity.this)
                                 .setTitle("需要 root 权限")
-                                .setMessage("进程守护通过 Magisk 模块实现，需要 root 权限。\n未获取到 root，模块已导出到 /sdcard/kdx3d_guard.zip\n可稍后在 Magisk 管理器 → 模块 → 从本地安装 手动刷入。")
+                                .setMessage("进程守护通过 Magisk 模块实现，需要 root 权限。\n未获取到 root，模块已导出到 /storage/emulated/0/kdx3d_guard.zip\n可稍后在 Magisk 管理器 → 模块 → 从本地安装 手动刷入。")
                                 .setPositiveButton("知道了", null)
                                 .show();
                         return;
@@ -135,7 +143,7 @@ public class MainActivity extends Activity {
                         exportGuardZip();
                         new AlertDialog.Builder(MainActivity.this)
                                 .setTitle("需要手动刷入模块")
-                                .setMessage("自动刷入失败。\n模块已导出到 /sdcard/kdx3d_guard.zip\n请在 Magisk 管理器 → 模块 → 从本地安装 选择它。")
+                                .setMessage("自动刷入失败。\n模块已导出到 /storage/emulated/0/kdx3d_guard.zip\n请在 Magisk 管理器 → 模块 → 从本地安装 选择它。")
                                 .setPositiveButton("知道了", null)
                                 .show();
                     }
@@ -438,11 +446,11 @@ public class MainActivity extends Activity {
                 .show();
     }
 
-    /** 刷入 Magisk 守护模块（root）：提取 assets zip → /sdcard → magisk --install-module */
+    /** 刷入 Magisk 守护模块（root）：提取 assets zip → /storage/emulated/0 → magisk --install-module */
     private boolean installGuardModule() {
         try {
-            // 1. 提取 assets zip 到 /sdcard
-            File out = new File("/sdcard/kdx3d_guard.zip");
+            // 1. 提取 assets zip 到 /storage/emulated/0
+            File out = new File("/storage/emulated/0/kdx3d_guard.zip");
             java.io.InputStream is = getAssets().open("kdx3d_guard.zip");
             java.io.FileOutputStream fos = new java.io.FileOutputStream(out);
             byte[] buf = new byte[8192];
@@ -451,19 +459,19 @@ public class MainActivity extends Activity {
             fos.close();
             is.close();
             // 2. magisk 刷入
-            return suExec("magisk --install-module /sdcard/kdx3d_guard.zip");
+            return suExec("magisk --install-module /storage/emulated/0/kdx3d_guard.zip");
         } catch (Exception e) {
             android.util.Log.e(TAG, "刷入守护模块失败", e);
             return false;
         }
     }
 
-    /** 导出模块 zip 到 /sdcard（供手动刷入） */
+    /** 导出模块 zip 到 /storage/emulated/0（供手动刷入） */
     private void exportGuardZip() {
         try {
             java.io.InputStream is = getAssets().open("kdx3d_guard.zip");
             java.io.FileOutputStream fos =
-                    new java.io.FileOutputStream(new File("/sdcard/kdx3d_guard.zip"));
+                    new java.io.FileOutputStream(new File("/storage/emulated/0/kdx3d_guard.zip"));
             byte[] buf = new byte[8192];
             int n;
             while ((n = is.read(buf)) > 0) fos.write(buf, 0, n);
@@ -501,7 +509,7 @@ public class MainActivity extends Activity {
         });
     }
 
-    /** 读取 /sdcard/.gles.cfg（即 /storage/emulated/0/.gles.cfg） */
+    /** 读取 /storage/emulated/0/.gles.cfg */
     private void loadCfg() {
         cfgMap.clear();
         // 确保配置文件存在（没有则创建，满足 3D 游戏配置需求）
@@ -586,53 +594,17 @@ public class MainActivity extends Activity {
         }.execute();
     }
 
-    /** 类型选择弹窗：勾选 3D游戏/3D应用，各自带配置按钮 */
+    /** 类型选择弹窗：单选类型，勾选即保存默认并直接进入对应配置界面 */
     private void showTypeDialog(final AppInfo app) {
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_type, null);
         TextView tvTitle = (TextView) v.findViewById(R.id.tv_type_title);
         tvTitle.setText(app.label + "\n" + app.pkg);
-        final CheckBox cbGame = (CheckBox) v.findViewById(R.id.cb_game);
-        final CheckBox cbApp = (CheckBox) v.findViewById(R.id.cb_app);
-        cbGame.setChecked(app.hasCfg);
-        cbApp.setChecked(app.hasApp3d);
+        final RadioButton cbGame = (RadioButton) v.findViewById(R.id.cb_game);
+        final RadioButton cbApp = (RadioButton) v.findViewById(R.id.cb_app);
+        // 已有配置的项选中（单选互斥）
+        if (app.hasCfg && app.hasApp3d) cbGame.setChecked(true);
         TextView tvHint = (TextView) v.findViewById(R.id.tv_type_hint);
-        tvHint.setText("勾选类型立即按默认配置保存，可再点「配置」调整细节。\n3D游戏：.gles.cfg 识别串 + 3D深度\n3D应用：SBS画面转立体（视角/自动3D/悬浮按钮）");
-
-        // 勾选即按默认状态保存（不用点配置）
-        cbGame.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton b, boolean checked) {
-                if (checked && !app.hasCfg) {
-                    saveDefaultGameCfg(app);   // 勾选 3D游戏 → 写默认模板
-                } else if (!checked && app.hasCfg) {
-                    // 取消勾选 → 删除游戏配置
-                    boolean ok = removeCfg(app.pkg);
-                    if (ok) {
-                        cfgMap.remove(app.pkg);
-                        pkgSelIdx.remove(app.pkg);
-                        getSharedPreferences("floatbar", MODE_PRIVATE).edit()
-                                .remove("tmpl_" + app.pkg).apply();
-                        app.hasCfg = false;
-                        adapter.notifyDataSetChanged();
-                                Toast.makeText(MainActivity.this, "已删除3D游戏配置", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-        });
-        cbApp.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton b, boolean checked) {
-                if (checked && !app.hasApp3d) {
-                    saveDefaultApp3d(app);     // 勾选 3D应用 → 保存默认配置
-                } else if (!checked && app.hasApp3d) {
-                    getSharedPreferences("floatbar", MODE_PRIVATE).edit()
-                            .remove("app3d_" + app.pkg).apply();
-                    app.hasApp3d = false;
-                    adapter.notifyDataSetChanged();
-                        Toast.makeText(MainActivity.this, "已删除3D应用配置", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        tvHint.setText("选择类型后进入对应配置界面。\n3D游戏：.gles.cfg 识别串 + 3D深度\n3D应用：SBS画面转立体（视角/自动3D/悬浮按钮）\n删除配置后重新选择类型");
 
         final AlertDialog typeDlg = new AlertDialog.Builder(this)
                 .setTitle("选择3D类型")
@@ -640,20 +612,28 @@ public class MainActivity extends Activity {
                 .setPositiveButton("关闭", null)
                 .create();
 
-        v.findViewById(R.id.btn_game_cfg).setOnClickListener(new View.OnClickListener() {
+        // 勾选 3D游戏 → 保存默认 + 直接进游戏配置
+        cbGame.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View view) {
-                app.hasCfg = true;
-                typeDlg.dismiss();
-                showParamDialog(app);
+            public void onCheckedChanged(CompoundButton b, boolean checked) {
+                if (checked) {
+                    if (!app.hasCfg) saveDefaultGameCfg(app);
+                    typeDlg.dismiss();
+                    showParamDialog(app);
+                } else if (!app.hasCfg && app.hasApp3d) {
+                    // 取消勾选（切到应用时）→ 已有应用配置则不动
+                }
             }
         });
-        v.findViewById(R.id.btn_app_cfg).setOnClickListener(new View.OnClickListener() {
+        // 勾选 3D应用 → 保存默认 + 直接进应用配置
+        cbApp.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View view) {
-                app.hasApp3d = true;
-                typeDlg.dismiss();
-                showApp3dDialog(app);
+            public void onCheckedChanged(CompoundButton b, boolean checked) {
+                if (checked) {
+                    if (!app.hasApp3d) saveDefaultApp3d(app);
+                    typeDlg.dismiss();
+                    showApp3dDialog(app);
+                }
             }
         });
 
@@ -793,11 +773,11 @@ public class MainActivity extends Activity {
                 .show();
     }
 
-    /** 应用视角：写 /sdcard/K3DX/config/.3d.properties + send2sf */
+    /** 应用视角：写 /storage/emulated/0/K3DX/config/.3d.properties + send2sf */
     private void applyViewPoint(int vp) {
         try {
             // 视角1(右左)=VP01(viewpoint=1)，视角2(左右)=VP02(viewpoint=0)
-            java.io.File f = new java.io.File("/sdcard/K3DX/config/.3d.properties");
+            java.io.File f = new java.io.File("/storage/emulated/0/K3DX/config/.3d.properties");
             java.io.FileOutputStream fos = new java.io.FileOutputStream(f);
             String content = "#WZTECH\nviewpoint=" + (vp == 1 ? "1" : "0") + "\nnavflag=1\n";
             fos.write(content.getBytes("UTF-8"));

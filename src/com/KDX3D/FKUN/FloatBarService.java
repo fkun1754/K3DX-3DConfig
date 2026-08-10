@@ -63,7 +63,9 @@ public class FloatBarService extends Service {
     private android.widget.FrameLayout barContainer;
     private TextView tvBtnText;
     private TextView tvModeText;
+    private TextView tvVpText;
     private View btnEdgeHint;
+    private int currentVp = 1;   // 1=VP01(右左) 2=VP02(左右)
     private int currentMode = 0;   // 0=HSBS 1=FSBS 2=2D3D
     private static final String[] MODES = {"HSBS", "FSBS", "2D3D"};
 
@@ -180,6 +182,7 @@ public class FloatBarService extends Service {
         btnView = LayoutInflater.from(this).inflate(R.layout.app3d_btn, null);
         tvBtnText = (TextView) btnView.findViewById(R.id.tv_btn_text);
         tvModeText = (TextView) btnView.findViewById(R.id.tv_mode_text);
+        tvVpText = (TextView) btnView.findViewById(R.id.tv_vp_text);
         btnEdgeHint = btnView.findViewById(R.id.btn_edge_hint);
         btnView.setOnTouchListener(btnTouchListener);
 
@@ -290,7 +293,7 @@ public class FloatBarService extends Service {
         } else if (currentType == 2) {
             curView = btnView;
             params.width = expanded ? dp(68) : edgeW;
-            params.height = expanded ? dp(102) : edgeH;
+            params.height = expanded ? dp(124) : edgeH;
             // 初始化展开视觉（外框 btn_frame）
             if (expanded) {
                 btnView.setBackgroundColor(0x00000000);
@@ -385,7 +388,7 @@ public class FloatBarService extends Service {
         cfgPkgs.clear();
         try {
             File f = new File("/storage/emulated/0/.gles.cfg");
-            if (!f.exists()) f = new File("/sdcard/.gles.cfg");
+            if (!f.exists()) f = new File("/storage/emulated/0/.gles.cfg");
             if (!f.exists()) return;
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF-8"));
             String line;
@@ -435,6 +438,23 @@ public class FloatBarService extends Service {
         scheduleHide(3000);
     }
 
+    /** 视角按钮动作：视角1 ↔ 视角2 切换（3D 中立即生效） */
+    private void cycleViewpoint() {
+        currentVp = (currentVp == 1) ? 2 : 1;
+        tvVpText.setText("视角" + currentVp);
+        com.wztech.service3d.Service3D.setViewPoint(currentVp == 1 ? 1 : 0);
+        // 同步写入 .3d.properties
+        if (lastTopPkg != null) {
+            try {
+                org.json.JSONObject o = new org.json.JSONObject(
+                        prefs.getString("app3d_" + lastTopPkg, "{}"));
+                o.put("viewpoint", currentVp);
+                prefs.edit().putString("app3d_" + lastTopPkg, o.toString()).apply();
+            } catch (Exception e) { }
+        }
+        scheduleHide(3000);
+    }
+
     /** 应用当前应用配置的视角 */
     private void applyAppViewPoint() {
         if (lastTopPkg == null) return;
@@ -473,7 +493,7 @@ public class FloatBarService extends Service {
                         if (params.x < 0) params.x = 0;
                         if (params.x > screenW - dp(68)) params.x = screenW - dp(68);
                         if (params.y < 0) params.y = 0;
-                        if (params.y > screenH - dp(102)) params.y = screenH - dp(102);
+                        if (params.y > screenH - dp(124)) params.y = screenH - dp(124);
                         wm.updateViewLayout(btnView, params);
                     }
                     return true;
@@ -615,8 +635,10 @@ public class FloatBarService extends Service {
                     .setBackgroundResource(android.R.color.transparent);
             btnView.findViewById(R.id.btn_main).setVisibility(View.GONE);
             btnView.findViewById(R.id.btn_mode).setVisibility(View.GONE);
+            btnView.findViewById(R.id.btn_viewpoint).setVisibility(View.GONE);
             tvBtnText.setVisibility(View.GONE);
             tvModeText.setVisibility(View.GONE);
+            tvVpText.setVisibility(View.GONE);
             btnEdgeHint.setVisibility(View.VISIBLE);
             android.view.ViewGroup.LayoutParams lp2 = btnEdgeHint.getLayoutParams();
             lp2.width = Math.round(2.5f * getResources().getDisplayMetrics().density); // 2.5dp
@@ -635,7 +657,7 @@ public class FloatBarService extends Service {
         int sx = (edgeSide == 0) ? 0 : (screenW - (currentType == 2 ? dp(68) : barW));
         int sy = params.y;
         int w = (currentType == 2) ? dp(68) : barW;
-        int h = (currentType == 2) ? dp(102) : barH;
+        int h = (currentType == 2) ? dp(124) : barH;
         if (sy > screenH - h) sy = screenH - h;
         params.x = sx;
         params.y = sy;
@@ -651,6 +673,7 @@ public class FloatBarService extends Service {
                     .setBackgroundResource(R.drawable.btn_frame);
             btnView.findViewById(R.id.btn_main).setVisibility(View.VISIBLE);
             btnView.findViewById(R.id.btn_mode).setVisibility(View.VISIBLE);
+            btnView.findViewById(R.id.btn_viewpoint).setVisibility(View.VISIBLE);
             btnEdgeHint.setVisibility(View.GONE);
             tvBtnText.setVisibility(View.VISIBLE);
             tvBtnText.setTextSize(16);
