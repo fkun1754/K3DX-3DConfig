@@ -30,6 +30,45 @@
 
 ---
 
+## 📷 界面预览
+
+### 1. 两种配置方式
+![两种配置方式](screenshots/01-two-config-modes.png)
+
+点击应用后勾选类型：**3D游戏**（走 .gles.cfg 配置）或 **3D应用**（SBS 转立体），勾选即按默认配置保存，可再点「配置」调整细节。
+
+### 2. 3D游戏配置
+![3D游戏配置](screenshots/02-game-3d-config.png)
+
+官方参考模板选择（深度场景型 / 平面分层型分组）、3D 深度调节（0-20）、3D 深度悬浮窗开关与「全部开启」选项。
+
+### 3. 3D应用配置
+![3D应用配置](screenshots/03-app-3d-config.png)
+
+3D 视角切换（视角1右左 / 视角2左右）、启动时直接开启 3D（HSBS / FSBS / 2D转3D 三种模式）、开启悬浮按钮。
+
+### 4. 游戏立体深度调节
+![游戏立体深度调节](screenshots/04-depth-adjust.png)
+
+游戏内 3D 深度悬浮窗：半透明滑条实时调节 3D 深度（persist.sys.3deffect 0-20），靠边自动收缩为边缘细条，点击/滑动唤出。
+
+### 5. HSBS（半幅 SBS）
+![HSBS](screenshots/05-hsbs.png)
+
+左右画面各占屏幕一半宽（标准 side-by-side 格式），合成立体显示。
+
+### 6. FSBS（全幅 SBS）
+![FSBS](screenshots/06-fsbs.png)
+
+左右眼全分辨率画面（无压缩损失）。⚠️ 不能全屏（系统限制）。
+
+### 7. 2D转3D
+![2D转3D](screenshots/07-2d-to-3d.png)
+
+普通 2D 画面转 3D 显示，采用简单算法分层实现（非 AI 转换）。
+
+---
+
 ## ✨ 功能特性
 
 ### 🎮 3D 游戏
