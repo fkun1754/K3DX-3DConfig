@@ -37,6 +37,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.HashMap;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
@@ -70,9 +71,12 @@ public class MainActivity extends Activity {
     private ListView listView;
     private List<AppInfo> appList = new ArrayList<AppInfo>();
     private AppAdapter adapter;
-    private Map<String, byte[]> cfgMap = new LinkedHashMap<String, byte[]>(); // pkg -> 32字节
+    private Map<String, byte[]> cfgMap = new LinkedHashMap<String, byte[]>();
+    private final Map<String, Drawable> iconCache = new HashMap<String, Drawable>(); // pkg -> 32字节
     private Map<String, Integer> pkgSelIdx = new LinkedHashMap<String, Integer>(); // pkg -> 保存时选的模板索引
     private boolean showSystem = false;
+
+    private Drawable fallbackIcon = null;
 
     static class AppInfo {
         String pkg;
@@ -563,10 +567,17 @@ public class MainActivity extends Activity {
                     } catch (Exception e) {
                         info.label = info.pkg;
                     }
-                    try {
-                        info.icon = pm.getApplicationIcon(ai);
-                    } catch (Exception e) {
-                        info.icon = null;
+                    // icon 缓存复用（避免每次全量重解码导致卡顿）
+                    Drawable cachedIcon = iconCache.get(ai.packageName);
+                    if (cachedIcon != null) {
+                        info.icon = cachedIcon;
+                    } else {
+                        try {
+                            info.icon = pm.getApplicationIcon(ai);
+                            iconCache.put(ai.packageName, info.icon);
+                        } catch (Exception e) {
+                            info.icon = null;
+                        }
                     }
                     info.hasCfg = cfgMap.containsKey(info.pkg);
                     info.hasApp3d = getSharedPreferences("floatbar", MODE_PRIVATE)
@@ -1094,7 +1105,14 @@ public class MainActivity extends Activity {
             TextView tvLabel = (TextView) convertView.findViewById(R.id.tv_label);
             TextView tvPkg = (TextView) convertView.findViewById(R.id.tv_pkg);
             TextView tvTag = (TextView) convertView.findViewById(R.id.tv_tag);
-            iv.setImageDrawable(info.icon != null ? info.icon : getResources().getDrawable(android.R.drawable.sym_def_app_icon));
+            if (info.icon != null) {
+                iv.setImageDrawable(info.icon);
+            } else {
+                if (fallbackIcon == null) {
+                    fallbackIcon = getResources().getDrawable(android.R.drawable.sym_def_app_icon);
+                }
+                iv.setImageDrawable(fallbackIcon);
+            }
             tvLabel.setText(info.label);
             tvPkg.setText(info.pkg);
             // [3D] 标识分色：3D游戏=绿色，3D应用=橙色，两者都有=蓝色

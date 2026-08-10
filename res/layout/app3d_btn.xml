@@ -17,7 +17,7 @@
         android:layout_width="56dp"
         android:layout_height="40dp"
         android:background="@drawable/btn_bg"
-        android:layout_marginBottom="2dp">
+        android:layout_marginBottom="4dp">
 
         <TextView
             android:id="@+id/tv_btn_text"
@@ -37,7 +37,7 @@
         android:layout_height="32dp"
         android:background="@drawable/btn_bg"
         android:layout_marginTop="2dp"
-        android:layout_marginBottom="2dp">
+        android:layout_marginBottom="4dp">
 
         <TextView
             android:id="@+id/tv_mode_text"
@@ -56,14 +56,14 @@
         android:layout_width="48dp"
         android:layout_height="32dp"
         android:background="@drawable/btn_bg"
-        android:layout_marginTop="2dp">
+        android:layout_marginTop="4dp">
 
         <TextView
             android:id="@+id/tv_vp_text"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:text="视角1"
+            android:text="右左"
             android:textSize="9sp"
             android:textColor="#333333"
             android:textStyle="bold"/>

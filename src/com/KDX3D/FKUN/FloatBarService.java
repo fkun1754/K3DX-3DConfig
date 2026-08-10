@@ -205,15 +205,32 @@ public class FloatBarService extends Service {
         handler.postDelayed(sizeMonitor, 1000);
     }
 
-    /** 前台监控：分类显示对应悬浮窗 */
+    /** 前台监控：分类显示对应悬浮窗（getTopPkg 放子线程，避免阻塞主线程） */
     private Runnable monitor = new Runnable() {
         @Override
         public void run() {
+            // UsageStats 查询（24h 事件遍历）放子线程，主线程只做 UI 更新
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    final String top = getTopPkg();
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            monitorCore(top);
+                        }
+                    });
+                }
+            }).start();
+        }
+    };
+
+    /** 前台监控核心（主线程执行） */
+    private void monitorCore(String top) {
             try {
-                String top = getTopPkg();
                 if (top == null) {
                     // 检测失败（权限丢失/异常）：保持当前显示状态，不因检测失败关闭悬浮窗
-                    handler.postDelayed(this, 500);
+                    handler.postDelayed(monitor, 500);
                     return;
                 }
                 boolean changed = !top.equals(lastTopPkg);
@@ -274,9 +291,8 @@ public class FloatBarService extends Service {
                 if (targetType != 0 && !shown) showCurrent();
                 if (targetType == 0 && shown) removeBar();
             } catch (Exception e) { }
-            handler.postDelayed(this, 500);
+            handler.postDelayed(monitor, 500);
         }
-    };
 
     private void showCurrent() {
         if (currentType == 1) {
@@ -293,7 +309,7 @@ public class FloatBarService extends Service {
         } else if (currentType == 2) {
             curView = btnView;
             params.width = expanded ? dp(68) : edgeW;
-            params.height = expanded ? dp(124) : edgeH;
+            params.height = expanded ? dp(132) : edgeH;
             // 初始化展开视觉（外框 btn_frame）
             if (expanded) {
                 btnView.setBackgroundColor(0x00000000);
@@ -301,10 +317,23 @@ public class FloatBarService extends Service {
                         .setBackgroundResource(R.drawable.btn_frame);
                 btnView.findViewById(R.id.btn_main).setVisibility(View.VISIBLE);
                 btnView.findViewById(R.id.btn_mode).setVisibility(View.VISIBLE);
+                btnView.findViewById(R.id.btn_viewpoint).setVisibility(View.VISIBLE);
                 btnEdgeHint.setVisibility(View.GONE);
                 tvBtnText.setVisibility(View.VISIBLE);
                 tvBtnText.setTextSize(16);
                 tvModeText.setVisibility(View.VISIBLE);
+                tvVpText.setVisibility(View.VISIBLE);
+                // 加载该应用配置的视角
+                if (lastTopPkg != null) {
+                    try {
+                        org.json.JSONObject o = new org.json.JSONObject(
+                                prefs.getString("app3d_" + lastTopPkg, "{}"));
+                        currentVp = o.optInt("viewpoint", 1);
+                        tvVpText.setText(currentVp == 1 ? "右左" : "左右");
+                    } catch (Exception e) { }
+                } else {
+                    tvVpText.setText(currentVp == 1 ? "右左" : "左右");
+                }
             }
         } else return;
         try {
@@ -440,8 +469,9 @@ public class FloatBarService extends Service {
 
     /** 视角按钮动作：视角1 ↔ 视角2 切换（3D 中立即生效） */
     private void cycleViewpoint() {
+        android.util.Log.i(TAG, "cycleViewpoint 触发");
         currentVp = (currentVp == 1) ? 2 : 1;
-        tvVpText.setText("视角" + currentVp);
+        tvVpText.setText(currentVp == 1 ? "右左" : "左右");
         com.wztech.service3d.Service3D.setViewPoint(currentVp == 1 ? 1 : 0);
         // 同步写入 .3d.properties
         if (lastTopPkg != null) {
@@ -493,7 +523,7 @@ public class FloatBarService extends Service {
                         if (params.x < 0) params.x = 0;
                         if (params.x > screenW - dp(68)) params.x = screenW - dp(68);
                         if (params.y < 0) params.y = 0;
-                        if (params.y > screenH - dp(124)) params.y = screenH - dp(124);
+                        if (params.y > screenH - dp(132)) params.y = screenH - dp(132);
                         wm.updateViewLayout(btnView, params);
                     }
                     return true;
@@ -522,12 +552,15 @@ public class FloatBarService extends Service {
                         dragging = false;
                         return true;
                     }
-                    // 点击：按位置区分主按钮(上)/模式按钮(下)（官方风格立即响应）
+                    // 点击：按位置区分 上=主按钮 / 中=模式 / 下=视角（官方风格立即响应）
                     float relY = event.getRawY() - params.y;
-                    if (relY < dp(56)) {
-                        toggleMain();   // 主按钮：2D↔3D
+                    android.util.Log.i(TAG, "tap relY=" + relY + " y=" + params.y);
+                    if (relY < dp(50)) {
+                        toggleMain();          // 主按钮：2D↔3D
+                    } else if (relY < dp(92)) {
+                        cycleMode();           // 模式按钮：HSBS/FSBS/2D3D
                     } else {
-                        cycleMode();    // 模式按钮：HSBS/FSBS/2D3D
+                        cycleViewpoint();      // 视角按钮：右左/左右
                     }
                     return true;
             }
@@ -657,7 +690,7 @@ public class FloatBarService extends Service {
         int sx = (edgeSide == 0) ? 0 : (screenW - (currentType == 2 ? dp(68) : barW));
         int sy = params.y;
         int w = (currentType == 2) ? dp(68) : barW;
-        int h = (currentType == 2) ? dp(124) : barH;
+        int h = (currentType == 2) ? dp(132) : barH;
         if (sy > screenH - h) sy = screenH - h;
         params.x = sx;
         params.y = sy;
@@ -678,6 +711,8 @@ public class FloatBarService extends Service {
             tvBtnText.setVisibility(View.VISIBLE);
             tvBtnText.setTextSize(16);
             tvModeText.setVisibility(View.VISIBLE);
+            tvVpText.setVisibility(View.VISIBLE);
+            tvVpText.setText(currentVp == 1 ? "右左" : "左右");
         }
         wm.updateViewLayout(curView, params);
         scheduleHide(3000);
