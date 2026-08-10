@@ -30,45 +30,6 @@ Naked-eye 3D phones based on KDX (Kangde Xin) technology have fragmented 3D feat
 
 ---
 
-## 📷 Screenshots
-
-### 1. Two Config Modes
-![Two config modes](screenshots/01-two-config-modes.png)
-
-Tap an app to choose its type: **3D Game** (via .gles.cfg) or **3D App** (SBS to 3D). Checking a type saves the default config immediately; tap "Configure" to fine-tune.
-
-### 2. 3D Game Config
-![3D game config](screenshots/02-game-3d-config.png)
-
-Official reference template selection (depth-scene / flat-layered groups), 3D depth adjustment (0-20), per-game depth floating bar toggle and "enable all" option.
-
-### 3. 3D App Config
-![3D app config](screenshots/03-app-3d-config.png)
-
-Viewpoint switch (VP1 right-left / VP2 left-right), auto-enable 3D on launch (HSBS / FSBS / 2D-to-3D), floating button toggle.
-
-### 4. In-Game 3D Depth Adjustment
-![In-game depth adjustment](screenshots/04-depth-adjust.png)
-
-Translucent slider floating bar for real-time 3D depth adjustment (persist.sys.3deffect 0-20); auto-collapses to an edge strip, tap/swipe to expand.
-
-### 5. HSBS (Half SBS)
-![HSBS](screenshots/05-hsbs.png)
-
-Left/right frames each occupy half the screen width (standard side-by-side), combined into stereoscopic display.
-
-### 6. FSBS (Full SBS)
-![FSBS](screenshots/06-fsbs.png)
-
-Full-resolution left/right frames (no compression loss). ⚠️ Cannot go fullscreen (system limitation).
-
-### 7. 2D-to-3D
-![2D-to-3D](screenshots/07-2d-to-3d.png)
-
-Converts normal 2D content to 3D via simple algorithm-based layering (not AI conversion).
-
----
-
 ## ✨ Features
 
 ### 🎮 3D Games
@@ -168,6 +129,28 @@ python build.py
 **Android support**: minSdk 19 (Android 4.4) to latest
 
 ---
+
+---
+
+## 📷 Screenshots
+
+<table align="center"><tr>
+<td align="center"><img src="screenshots/01-two-config-modes.png" width="130"/><br/><sub>1. Two config modes</sub></td>
+<td align="center"><img src="screenshots/02-game-3d-config.png" width="130"/><br/><sub>2. 3D game config</sub></td>
+<td align="center"><img src="screenshots/03-app-3d-config.png" width="130"/><br/><sub>3. 3D app config</sub></td>
+<td align="center"><img src="screenshots/04-depth-adjust.png" width="130"/><br/><sub>4. In-game depth adjust</sub></td>
+<td align="center"><img src="screenshots/05-hsbs.png" width="130"/><br/><sub>5. HSBS (half SBS)</sub></td>
+<td align="center"><img src="screenshots/06-fsbs.png" width="130"/><br/><sub>6. FSBS (no fullscreen)</sub></td>
+<td align="center"><img src="screenshots/07-2d-to-3d.png" width="130"/><br/><sub>7. 2D-to-3D (layering)</sub></td>
+</tr></table>
+
+- **1**: Choose type per app — 3D Game (.gles.cfg) or 3D App (SBS to 3D); checking saves defaults
+- **2**: Official template groups + depth adjust (0-20) + floating bar toggle & "enable all"
+- **3**: Viewpoint switch (VP1/VP2) + auto-3D on launch (HSBS/FSBS/2D3D) + floating button
+- **4**: Translucent slider adjusts depth in-game; edge-collapse, tap/swipe to expand
+- **5**: HSBS half SBS — half-width frames combined into stereo
+- **6**: FSBS full SBS, no compression; cannot go fullscreen (system limitation)
+- **7**: 2D-to-3D via simple algorithm layering (not AI)
 
 ---
 
