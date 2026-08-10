@@ -10,7 +10,7 @@
 
 康得新（KDX）技术的裸眼 3D 手机，其 3D 功能分散在多个系统组件中、体验不统一：
 
-- **3D 游戏**：依赖系统 libGLES 注入层读取 `.gles.cfg` 配置，配置串带厂商自定义校验，无法自行生成
+- **3D 游戏**：依赖系统 libGLES 注入层读取 `.gles.cfg` 配置
 - **3D 应用**：依赖系统 3DService 的 SBS 画面转立体功能（悬浮按钮），入口隐藏且功能单一
 - 各机型深度调节、悬浮窗、视角切换的实现五花八门
 
@@ -27,7 +27,7 @@
 | **K3DX-V5G**（中兴/努比亚） | ✅ | ✅ | ✅ | **功能全部正常**（开发测试机） |
 | **中兴 C2017** | ✅ | ❌ | ✅ | 游戏不能深度调节，其他正常 |
 | **koobee F2** | ✅ | ✅ | ❓ | 游戏深度调节可用，3D应用功能未测试 |
-| **长虹 X1** | ❌ | ❌ | ❌ | 不可用（系统机制不同） |
+| **长虹 X1** | ❌ | ❌ | ❌ | 不可用 |
 
 ---
 
@@ -45,14 +45,9 @@
 - 启动时自动开启 3D 模式（可选模式）
 - 悬浮按钮：上下双按钮（主按钮 2D↔3D 切换 + 模式按钮循环），点击立即响应；靠边自动收缩为边缘细条、点击/滑动唤出
 
-### 🪟 悬浮窗（双模式）
-- 游戏深度滑条 / 3D应用双按钮 自动切换（按前台应用类型）
-- 靠边收缩、位置记忆、仅配置过的应用显示
-- 控制中心（通知栏）快捷开关按钮
-
 ### 🔒 进程守护（可选，root）
 - Magisk 模块：开机自启 + 被杀自动拉起 + OOM 防杀
-- 努比亚系统进程白名单写入（后台驻留）
+- 系统进程白名单写入（后台驻留）
 
 ---
 
@@ -60,7 +55,7 @@
 
 | 权限 | 用途 | 需要的系统 |
 |------|------|-----------|
-| `WRITE/READ_EXTERNAL_STORAGE` | 读写 `/sdcard/.gles.cfg` | 6.0+ 运行时申请 |
+| `WRITE/READ_EXTERNAL_STORAGE` | 读写 `/storage/emulated/0/.gles.cfg` | 6.0+ 运行时申请 |
 | `SYSTEM_ALERT_WINDOW` | 悬浮窗 | 6.0+ 设置页授权 |
 | `PACKAGE_USAGE_STATS` | 前台应用检测（悬浮窗按应用显示） | 设置页授权 |
 | `RECEIVE_BOOT_COMPLETED` | 开机自启 | 普通权限 |
@@ -84,7 +79,7 @@
 - 32 字节结构：`[0:3]='KDX'` `[3]=0x1c` `[4:8]=校验值` `[8]=enableMix` `[9]=0xff` `[10]=eye` `[11]=parallax_adj` `[12]=focus_plane` `[13]=near_plane` `[14]=0x64` `[15:31]=0`
 - **`[4:8]` 是参数区的自定义校验值**（经逆向验证：15 组同参数配置 ID 完全相同，常见哈希全部不匹配，算法在厂商生成器手中）——因此无法自行生成参数，只能复用官方完整串
 - 本项目内置 **119 条官方配置串**（覆盖全部官方参数组合），换包名写入即可 100% 生效
-- 深度调节：`setprop persist.sys.3deffect (0-20)`，部分机型（如 K3DX-V5G，SELinux=Permissive + 厂商放宽 persist 写权限）**无需 root**
+- 深度调节：`setprop persist.sys.3deffect (0-20)`
 
 ### 2. 3D 应用 —— SBS 转立体接口
 系统 3DService（`com.wztech.service3d`）通过 **binder 调用定制 SurfaceFlinger 的扩展服务**（`MyService.send()`）。逆向发现其 JNI 库 `libnative_wz2sf.so` 导出了 `Java_com_wztech_service3d_Service3D_send2sf`——本项目用**同名类 + System.load 零编译绑定**直接调用：
@@ -118,7 +113,7 @@ python build.py
 
 **依赖**：Android SDK（build-tools 35.0.0 + platform android-31）、JDK、Python 3
 
-**Android 支持范围**：minSdk 19（Android 4.4）～ 最新，向上适配（6.0 运行时权限 / 8.0 通知渠道 / 9.0 前台服务 / 11.0 分区存储 / 13.0 通知权限全覆盖）
+**Android 支持范围**：minSdk 19（Android 4.4）～ 最新
 
 ---
 
