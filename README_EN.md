@@ -52,18 +52,33 @@ Naked-eye 3D phones based on KDX (Kangde Xin) technology have fragmented 3D feat
 
 ## 🔐 Permissions
 
-| Permission | Purpose | Required On |
-|------|------|-----------|
-| `WRITE/READ_EXTERNAL_STORAGE` | Read/write `/storage/emulated/0/.gles.cfg` | 6.0+ runtime |
-| `SYSTEM_ALERT_WINDOW` | Floating window | 6.0+ settings |
-| `PACKAGE_USAGE_STATS` | Foreground app detection | Settings grant |
-| `RECEIVE_BOOT_COMPLETED` | Boot autostart | Normal |
-| `FOREGROUND_SERVICE` | Foreground service | Android 9+ |
-| `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Background persistence | Android 6+ |
-| `POST_NOTIFICATIONS` | Notification quick toggle | Android 13+ |
-| `MANAGE_EXTERNAL_STORAGE` | Write root-dir config under scoped storage | Android 11+ |
+**Storage**
 
----
+| Permission | Purpose | Condition |
+|------|------|------|
+| `WRITE/READ_EXTERNAL_STORAGE` | Read/write `/storage/emulated/0/.gles.cfg` | Android 6.0+ runtime |
+| `MANAGE_EXTERNAL_STORAGE` | Access storage root under scoped storage | Android 11+ settings grant |
+
+**UI & Notifications**
+
+| Permission | Purpose | Condition |
+|------|------|------|
+| `SYSTEM_ALERT_WINDOW` | Floating window | Android 6.0+ settings grant |
+| `POST_NOTIFICATIONS` | Notification quick toggle | Android 13+ runtime |
+
+**Background**
+
+| Permission | Purpose | Condition |
+|------|------|------|
+| `FOREGROUND_SERVICE` | Foreground service | Android 9+ |
+| `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Background persistence | Android 6.0+ |
+| `RECEIVE_BOOT_COMPLETED` | Boot autostart | Normal |
+
+**App Detection**
+
+| Permission | Purpose | Condition |
+|------|------|------|
+| `PACKAGE_USAGE_STATS` | Foreground app detection | All versions, settings grant (AppOps) |
 
 ## 🧠 Implementation (Summary)
 

@@ -53,19 +53,33 @@
 
 ## 🔐 权限说明
 
-| 权限 | 用途 | 需要的系统 |
-|------|------|-----------|
-| `WRITE/READ_EXTERNAL_STORAGE` | 读写 `/storage/emulated/0/.gles.cfg` | 6.0+ 运行时申请 |
-| `SYSTEM_ALERT_WINDOW` | 悬浮窗 | 6.0+ 设置页授权 |
-| `PACKAGE_USAGE_STATS` | 前台应用检测（悬浮窗按应用显示） | 设置页授权 |
-| `RECEIVE_BOOT_COMPLETED` | 开机自启 | 普通权限 |
-| `FOREGROUND_SERVICE` | 前台服务（悬浮窗常驻） | Android 9+ |
-| `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | 后台驻留防杀 | Android 6+ |
-| `POST_NOTIFICATIONS` | 控制中心通知 | Android 13+ |
-| `MANAGE_EXTERNAL_STORAGE` | 分区存储下写根目录配置 | Android 11+ |
-| `PACKAGE_USAGE_STATS` 的 AppOps 授权 | 前台应用检测 | 所有版本 |
+**存储访问**
 
----
+| 权限 | 用途 | 条件 |
+|------|------|------|
+| `WRITE/READ_EXTERNAL_STORAGE` | 读写 `/storage/emulated/0/.gles.cfg` | Android 6.0+ 运行时申请 |
+| `MANAGE_EXTERNAL_STORAGE` | 分区存储下访问存储根目录 | Android 11+ 设置页授权 |
+
+**界面与通知**
+
+| 权限 | 用途 | 条件 |
+|------|------|------|
+| `SYSTEM_ALERT_WINDOW` | 悬浮窗 | Android 6.0+ 设置页授权 |
+| `POST_NOTIFICATIONS` | 通知栏快捷开关 | Android 13+ 运行时申请 |
+
+**后台运行**
+
+| 权限 | 用途 | 条件 |
+|------|------|------|
+| `FOREGROUND_SERVICE` | 前台服务（悬浮窗常驻） | Android 9+ |
+| `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | 后台驻留防杀 | Android 6.0+ |
+| `RECEIVE_BOOT_COMPLETED` | 开机自启 | 普通权限 |
+
+**应用检测**
+
+| 权限 | 用途 | 条件 |
+|------|------|------|
+| `PACKAGE_USAGE_STATS` | 前台应用检测（悬浮窗按应用显示） | 所有版本，设置页授权（AppOps） |
 
 ## 🧠 实现方法（简述）
 
