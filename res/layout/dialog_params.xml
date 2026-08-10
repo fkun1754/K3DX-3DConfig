@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tv_pkg_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:textColor="#333333"
+            android:paddingBottom="8dp"/>
+
+        <!-- 快速匹配提示 -->
+        <TextView
+            android:id="@+id/tv_match_tip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="#008800"
+            android:paddingBottom="6dp"/>
+
+        <!-- 参考模板选择 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="参考模板（选同类型游戏的参数）"
+            android:textSize="14sp"
+            android:textColor="#333333"/>
+        <Spinner
+            android:id="@+id/sp_ref"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- 模板参数只读展示 -->
+        <TextView
+            android:id="@+id/tv_param_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:textColor="#666666"
+            android:paddingBottom="10dp"/>
+
+        <!-- 3D深度 (persist.sys.3deffect, 同系统3Dconfig；按应用记忆) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3D深度 (0=关闭, 20=最强, 同系统3Dconfig)"
+            android:textSize="14sp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <SeekBar
+                android:id="@+id/sb_depth"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="20"/>
+            <TextView
+                android:id="@+id/tv_depth"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="14sp"/>
+        </LinearLayout>
+
+        <!-- 3D深度悬浮窗开关（按应用） -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="3D深度悬浮窗"
+                android:textSize="14sp"/>
+            <Switch
+                android:id="@+id/sw_game_fb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <!-- 全部游戏开启（仅在悬浮窗开关开启后显示） -->
+        <CheckBox
+            android:id="@+id/cb_all_fb"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="全部开启（所有3D游戏都强制开启深度悬浮窗）"
+            android:textSize="13sp"
+            android:visibility="gone"/>
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <TextView
+            android:id="@+id/tv_app3d_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:textColor="#333333"
+            android:paddingBottom="8dp"/>
+
+        <!-- 3D视角 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3D视角（左右眼对调）"
+            android:textSize="14sp"
+            android:textColor="#333333"/>
+        <RadioGroup
+            android:id="@+id/rg_viewpoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingBottom="8dp">
+            <RadioButton
+                android:id="@+id/rb_vp1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="视角1（右左）"
+                android:textSize="14sp"/>
+            <RadioButton
+                android:id="@+id/rb_vp2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="视角2（左右）"
+                android:textSize="14sp"/>
+        </RadioGroup>
+
+        <!-- 启动时直接开启3D -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="启动时直接开启3D模式"
+                android:textSize="14sp"/>
+            <Spinner
+                android:id="@+id/sp_auto_mode"
+                android:layout_width="90dp"
+                android:layout_height="wrap_content"/>
+            <Switch
+                android:id="@+id/sw_auto3d"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="4dp"/>
+        </LinearLayout>
+
+        <!-- 开启悬浮按钮 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="开启悬浮按钮"
+                android:textSize="14sp"/>
+            <Switch
+                android:id="@+id/sw_app_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <!-- 悬浮按钮功能说明 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="#666666"
+            android:paddingTop="8dp"
+            android:text="悬浮按钮说明：\n· 上按钮：点击切换 2D ↔ 3D 显示\n· 下按钮：点击循环切换模式（HSBS→FSBS→2D3D）\n\n名词解释：\n· HSBS：半幅SBS——左右画面各占屏幕一半宽（标准 side-by-side 格式）\n· FSBS：全幅SBS——左右眼全分辨率画面（无压缩损失）\n· 2D3D：2D转3D——普通2D画面做深度映射生成立体\n\n按钮靠边自动收缩为边缘细条，点击/滑动唤出"/>
+    </LinearLayout>
+</ScrollView>

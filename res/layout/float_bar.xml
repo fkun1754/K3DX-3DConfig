@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bar_container"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bar_bg">
+
+    <!-- 展开态内容：左右对称留白，方便拖动 -->
+    <LinearLayout
+        android:id="@+id/bar_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/tv_bar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3D深度"
+            android:textSize="12sp"
+            android:textColor="#FFFFFF"
+            android:paddingBottom="2dp"/>
+
+        <SeekBar
+            android:id="@+id/sb_bar_depth"
+            android:layout_width="190dp"
+            android:layout_height="wrap_content"
+            android:max="20"/>
+    </LinearLayout>
+
+    <!-- 隐藏态视觉条：触摸区的 1/10 宽，20% 透明黑，贴屏幕边缘 -->
+    <View
+        android:id="@+id/bar_edge_hint"
+        android:layout_width="3dp"
+        android:layout_height="match_parent"
+        android:background="#33000000"
+        android:visibility="gone"/>
+</FrameLayout>

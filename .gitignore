@@ -1,0 +1,18 @@
+# 构建产物
+build/
+output/
+*.apk
+
+# 逆向分析素材
+*.dex
+*.smali
+*.so
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# 系统文件
+Thumbs.db
+.DS_Store
