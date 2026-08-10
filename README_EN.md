@@ -11,7 +11,7 @@
 Naked-eye 3D phones based on KDX (Kangde Xin) technology have fragmented 3D features across multiple system components:
 
 - **3D games**: rely on the system libGLES injection layer reading `.gles.cfg`
-- **3D apps**: rely on the system 3DService SBS-to-3D conversion (floating button), hidden entry with limited functionality
+- **3D apps**: rely on the system 3DService SBS-to-3D conversion (floating button), incomplete functionality with whitelist restrictions
 
 **Why this project exists**: theoretically works on **all naked-eye 3D devices using KDX technology** — to **unify the 3D experience across KDX 3D phones** with a single app covering game 3D config, app SBS-to-3D.
 
