@@ -156,7 +156,7 @@ python build.py
 
 ## 📝 Changelog
 
-- **1.1**: Viewpoint switch button (right-left/left-right) and 3-button floating window layout for 3D apps; single-select type goes straight to config; config persisted to app folder (survives updates); new KDX theme icon; fixed process guard & floating window bugs; UI polish
+- **1.1**: Viewpoint switch button (right-left/left-right) on 3D-app floating window; fixed process guard & config persistence bugs; UI polish
 - **1.0**: First open-source release: complete 3D game/app config + floating windows
 
 ---
