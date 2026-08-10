@@ -84,7 +84,7 @@
 ## 🧠 实现方法（简述）
 
 ### 1. 3D 游戏 —— `.gles.cfg` 机制
-康得新 libGLES 注入层（`libGLES_kdx.so`）在游戏进程启动时读取 `/sdcard/.gles.cfg`，格式：
+康得新 libGLES 注入层（`libGLES_kdx.so`）在游戏进程启动时读取 `/storage/emulated/0/.gles.cfg`，格式：
 
 ```
 包名  32字节配置串（Base64）
