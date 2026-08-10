@@ -154,6 +154,13 @@ python build.py
 
 ---
 
+## 📝 Changelog
+
+- **1.0.1**: Fixed process guard not working
+- **1.0**: First open-source release: complete 3D game/app config + floating windows
+
+---
+
 ## 💬 Contact
 
 QQ Tech Group: **869206374**
