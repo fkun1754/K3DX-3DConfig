@@ -744,9 +744,9 @@ public class MainActivity extends Activity {
         typeDlg.show();
     }
 
-    /** 默认推荐模板：深度·盗墓笔记（最通用的深度场景型参数 eye=10/focus=62/near=16） */
+    /** 默认推荐模板：水果忍者（实测多数游戏效果最佳，eye=100 通用性最强） */
     private static final String DEFAULT_TMPL =
-            "S0RYHF96J10B/woAPhBkAAAAAAAAAAAAAAAAAAAAAAA=";
+            "S0RYHHhaxusB/2QAV1dkAAAAAAAAAAAAAAAAAAAAAAA=";
 
     /** 找默认模板索引 */
     private int findDefaultIdx() {
@@ -1039,7 +1039,7 @@ public class MainActivity extends Activity {
 
         // 快速匹配提示
         TextView tvTip = (TextView) v.findViewById(R.id.tv_match_tip);
-        tvTip.setText(guessType(app.pkg, app.label));
+        tvTip.setText("默认模板为多数游戏通用参数，效果不佳可在上方列表中更换");
 
         spRef.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -1166,11 +1166,12 @@ public class MainActivity extends Activity {
         String[] deepKeys = {"race", "racing", "drive", "driving", "shoot", "shooting", "gun", "gunfight",
                 "sniper", "war", "tank", "fighter", "fighting", "combat", "strike", "fire", "3d",
                 "moto", "car", "speed", "rush", "run", "runner", "sword", "blade", "hero", "legend",
-                "world", "craft", "mine", "sim", "kart", "rpg", "ol", "mobile", "net", "samurai",
-                "kill", "dead", "undead", "zombie", "storm", "spy", "agent", "assassin"};
+                "world", "craft", "mine", "sim", "kart", "rpg", "ol", "mobile", "net",
+                "kill", "dead", "zombie", "storm", "spy", "agent", "assassin"};
         String[] flatKeys = {"majiang", "mahjong", "chess", "card", "poker", "match", "puzzle", "tap",
                 "fruit", "candy", "bird", "bubble", "farm", "cook", "cake", "dress", "girl",
-                "beauty", "idol", "pet", "baby", "kids", "fish", "hunter"};
+                "beauty", "idol", "pet", "baby", "kids", "fish", "hunter",
+                "samurai", "undead", "slayer", "ninja"};   // 固定视角动作（武士2/亡灵杀手等）
         for (String k : deepKeys) {
             if (s.contains(k)) return "提示：像3D场景游戏，推荐「深度场景型」（已默认选中）";
         }
@@ -1187,14 +1188,15 @@ public class MainActivity extends Activity {
         java.util.List<String[]> rest = new java.util.ArrayList<String[]>();
         for (String[] t : REF_OFFICIAL) {
             String name = t[1];
+            // 去掉"深度·/平面·"分类前缀（分类不准确，实测与游戏类型无关）
+            if (name != null && (name.startsWith("深度·") || name.startsWith("平面·"))) {
+                name = name.substring(3);
+            }
             if (DEFAULT_TMPL.equals(t[2])) {
-                // 默认推荐：3D视角游戏通用（深度场景型）
-                rec.add(new String[]{t[0], "推荐·" + name + "（3D视角游戏通用）", t[2]});
-            } else if ("S0RYHHhaxusB/2QAV1dkAAAAAAAAAAAAAAAAAAAAAAA=".equals(t[2])) {
-                // 固定视角游戏通用（平面分层型）
-                rec.add(new String[]{t[0], "推荐·" + name + "（固定视角游戏通用）", t[2]});
+                // 唯一推荐：水果忍者（多数游戏效果最佳）
+                rec.add(new String[]{t[0], "推荐·" + name, t[2]});
             } else {
-                rest.add(new String[]{t[0], t[1], t[2]});
+                rest.add(new String[]{t[0], name, t[2]});
             }
         }
         String[][] lib = new String[rec.size() + rest.size()][];
