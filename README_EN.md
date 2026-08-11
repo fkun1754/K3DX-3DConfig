@@ -24,9 +24,15 @@ Naked-eye 3D phones based on KDX (Kangde Xin) technology have fragmented 3D feat
 | Device | 3D Game Config | Game Depth Adjust | 3D App (SBS→3D) | Notes |
 |------|:---:|:---:|:---:|------|
 | **K3DX-V5G** (ZTE/nubia) | ✅ | ✅ | ✅ | **Fully working** (dev/test device) |
-| **ZTE C2017** | ✅ | ❌ | ✅ | No game depth adjustment; everything else works |
-| **koobee F2** | ✅ | ✅ | ❓ | Game depth works; 3D app not tested |
+| **ZTE C2017** | ✅ | ❌ | ✅ | No game depth adjust, rest works |
+| **koobee F2** | ✅ | ✅ | ❌ | Game depth works; 3D app not usable |
 | **Changhong X1** | ❌ | ❌ | ❌ | Not working |
+| **Unno P8** | ❓ | ❓ | ❓ | Untested |
+| **D Color 7.0** | ❓ | ❓ | ❓ | Untested |
+| **Blackview P2 Lite 3D** | ❓ | ❓ | ❓ | Untested |
+| **Elephone P8 3D** | ❓ | ❓ | ❓ | Untested |
+| **Konka Phantom T1** | ❓ | ❓ | ❓ | Untested |
+| **Tianjin BlueCool LK7** | ❓ | ❓ | ❓ | Untested |
 
 ---
 
