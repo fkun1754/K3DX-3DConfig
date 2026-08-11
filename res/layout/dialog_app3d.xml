@@ -85,6 +85,42 @@
                 android:layout_height="wrap_content"/>
         </LinearLayout>
 
+        <!-- 悬浮窗显示模式按钮（HSBS/FSBS/2D3D 循环） -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="显示模式按钮（HSBS/FSBS/2D3D）"
+                android:textSize="14sp"/>
+            <Switch
+                android:id="@+id/sw_show_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <!-- 悬浮窗显示视角按钮（右左/左右） -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="显示视角按钮（右左/左右）"
+                android:textSize="14sp"/>
+            <Switch
+                android:id="@+id/sw_show_vp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
         <!-- 悬浮按钮功能说明 -->
         <TextView
             android:layout_width="match_parent"

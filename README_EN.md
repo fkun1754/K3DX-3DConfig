@@ -156,6 +156,7 @@ python build.py
 
 ## 📝 Changelog
 
+- **1.2**: App list sorting (3D games/apps first) & search; independent mode/viewpoint button toggles on 3D-app floating window; template picker search & recommendations on top; config persisted to app folder (survives updates); fixed V5G viewpoint not following 180° landscape rotation (auto-switch added); UI & performance polish
 - **1.1**: Viewpoint switch button (right-left/left-right) on 3D-app floating window; fixed process guard & config persistence bugs; UI polish
 - **1.0**: First open-source release: complete 3D game/app config + floating windows
 

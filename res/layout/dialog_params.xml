@@ -33,10 +33,23 @@
             android:text="参考模板（选同类型游戏的参数）"
             android:textSize="14sp"
             android:textColor="#333333"/>
-        <Spinner
+        <TextView
             android:id="@+id/sp_ref"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/ref_btn_bg"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:text="▾ 点击选择/搜索模板"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="点击上方选择/搜索模板"
+            android:textSize="11sp"
+            android:textColor="#999999"
             android:layout_marginBottom="8dp"/>
 
         <!-- 模板参数只读展示 -->

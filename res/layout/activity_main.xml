@@ -63,6 +63,15 @@
         android:layout_height="1dp"
         android:background="#DDDDDD"/>
 
+    <EditText
+        android:id="@+id/et_search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="搜索应用"
+        android:textSize="14sp"
+        android:singleLine="true"
+        android:padding="6dp"
+        android:inputType="text"/>
     <ListView
         android:id="@+id/list_apps"
         android:layout_width="match_parent"

@@ -36,7 +36,7 @@
     <!-- 隐藏态视觉条：触摸区的 1/10 宽，20% 透明黑，贴屏幕边缘 -->
     <View
         android:id="@+id/bar_edge_hint"
-        android:layout_width="3dp"
+        android:layout_width="2dp"
         android:layout_height="match_parent"
         android:background="#33000000"
         android:visibility="gone"/>

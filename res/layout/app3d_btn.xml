@@ -1,79 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/btn_container"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/btn_root"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:background="@drawable/btn_frame"
-    android:paddingLeft="6dp"
-    android:paddingRight="6dp"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp">
+    android:layout_height="wrap_content">
 
-    <!-- 主按钮（上）：2D/3D 切换，圆角矩形 -->
-    <FrameLayout
-        android:id="@+id/btn_main"
-        android:layout_width="56dp"
-        android:layout_height="40dp"
-        android:background="@drawable/btn_bg"
-        android:layout_marginBottom="4dp">
+    <!-- 按钮组容器（收缩时整体隐藏） -->
+    <LinearLayout
+        android:id="@+id/btn_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@drawable/btn_frame"
+        android:paddingLeft="6dp"
+        android:paddingRight="6dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
 
-        <TextView
-            android:id="@+id/tv_btn_text"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="2D"
-            android:textSize="15sp"
-            android:textColor="#333333"
-            android:textStyle="bold"/>
-    </FrameLayout>
+        <!-- 主按钮（上）：2D/3D 切换，圆角矩形 -->
+        <FrameLayout
+            android:id="@+id/btn_main"
+            android:layout_width="56dp"
+            android:layout_height="40dp"
+            android:background="@drawable/btn_bg"
+            android:layout_marginBottom="4dp">
 
-    <!-- 模式按钮（中）：HSBS/FSBS/2D3D 循环，圆角矩形 -->
-    <FrameLayout
-        android:id="@+id/btn_mode"
-        android:layout_width="48dp"
-        android:layout_height="32dp"
-        android:background="@drawable/btn_bg"
-        android:layout_marginTop="2dp"
-        android:layout_marginBottom="4dp">
+            <TextView
+                android:id="@+id/tv_btn_text"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="2D"
+                android:textSize="15sp"
+                android:textColor="#333333"
+                android:textStyle="bold"/>
+        </FrameLayout>
 
-        <TextView
-            android:id="@+id/tv_mode_text"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="HSBS"
-            android:textSize="9sp"
-            android:textColor="#333333"
-            android:textStyle="bold"/>
-    </FrameLayout>
+        <!-- 模式按钮（中）：HSBS/FSBS/2D3D 循环，圆角矩形 -->
+        <FrameLayout
+            android:id="@+id/btn_mode"
+            android:layout_width="48dp"
+            android:layout_height="32dp"
+            android:background="@drawable/btn_bg"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp">
 
-    <!-- 视角按钮（下）：视角1/视角2 切换，圆角矩形 -->
-    <FrameLayout
-        android:id="@+id/btn_viewpoint"
-        android:layout_width="48dp"
-        android:layout_height="32dp"
-        android:background="@drawable/btn_bg"
-        android:layout_marginTop="4dp">
+            <TextView
+                android:id="@+id/tv_mode_text"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="HSBS"
+                android:textSize="9sp"
+                android:textColor="#333333"
+                android:textStyle="bold"/>
+        </FrameLayout>
 
-        <TextView
-            android:id="@+id/tv_vp_text"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="右左"
-            android:textSize="9sp"
-            android:textColor="#333333"
-            android:textStyle="bold"/>
-    </FrameLayout>
+        <!-- 视角按钮（下）：右左/左右 切换，圆角矩形 -->
+        <FrameLayout
+            android:id="@+id/btn_viewpoint"
+            android:layout_width="48dp"
+            android:layout_height="32dp"
+            android:background="@drawable/btn_bg"
+            android:layout_marginTop="4dp">
 
-    <!-- 收缩态视觉细条 -->
+            <TextView
+                android:id="@+id/tv_vp_text"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="右左"
+                android:textSize="9sp"
+                android:textColor="#333333"
+                android:textStyle="bold"/>
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- 收缩态统一细条（独立层：高度=窗口高，1/2/3按钮完全一致） -->
     <View
         android:id="@+id/btn_edge_hint"
-        android:layout_width="2.5dp"
+        android:layout_width="2dp"
         android:layout_height="match_parent"
         android:background="#40FFFFFF"
         android:visibility="gone"/>
-</LinearLayout>
+</FrameLayout>

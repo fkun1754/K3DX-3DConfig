@@ -65,7 +65,13 @@ public class FloatBarService extends Service {
     private TextView tvModeText;
     private TextView tvVpText;
     private View btnEdgeHint;
+    private View btnMode;
+    private View btnVp;
     private int currentVp = 1;   // 1=VP01(右左) 2=VP02(左右)
+    private int lastRotation = -1;   // 屏幕方向（V5G 180度旋转视角补丁）
+    private static final boolean IS_V5G =
+            (android.os.Build.MODEL != null && android.os.Build.MODEL.contains("K3DX-V5G"))
+            || (android.os.Build.DEVICE != null && android.os.Build.DEVICE.contains("N940"));
     private int currentMode = 0;   // 0=HSBS 1=FSBS 2=2D3D
     private static final String[] MODES = {"HSBS", "FSBS", "2D3D"};
 
@@ -184,6 +190,8 @@ public class FloatBarService extends Service {
         tvModeText = (TextView) btnView.findViewById(R.id.tv_mode_text);
         tvVpText = (TextView) btnView.findViewById(R.id.tv_vp_text);
         btnEdgeHint = btnView.findViewById(R.id.btn_edge_hint);
+        btnMode = btnView.findViewById(R.id.btn_mode);
+        btnVp = btnView.findViewById(R.id.btn_viewpoint);
         btnView.setOnTouchListener(btnTouchListener);
 
         params = new WindowManager.LayoutParams(
@@ -241,6 +249,13 @@ public class FloatBarService extends Service {
                 // 无全局开关：服务常驻，仅按各应用配置判断显示
                 boolean fbAll = prefs.getBoolean("fb_all", false);   // 全部游戏开启深度悬浮窗
                 int targetType = 0;
+                // 仅横屏显示悬浮窗（旋转/分辨率切换时竖屏状态位置易错乱）
+                int rot = wm.getDefaultDisplay().getRotation();
+                if (rot == 0 || rot == 2) {
+                    if (shown) removeBar();
+                    handler.postDelayed(monitor, 500);
+                    return;
+                }
                 if (top != null) {
                     if (cfgPkgs.contains(top)
                             && (fbAll || prefs.getBoolean("fb_" + top, false))) {
@@ -252,6 +267,11 @@ public class FloatBarService extends Service {
                                     prefs.getString("app3d_" + top, "{}"));
                             if (o.optInt("btn", 1) == 1) {
                                 targetType = 2; // 圆形按钮
+                                // 每应用独立：模式/视角按钮显示开关
+                                btnMode.setVisibility(o.optInt("showMode", 1) == 1
+                                        ? View.VISIBLE : View.GONE);
+                                btnVp.setVisibility(o.optInt("showVp", 1) == 1
+                                        ? View.VISIBLE : View.GONE);
                             }
                             // 启动时直接开启3D（自动模式）：仅在应用切换时应用一次，
                             // 避免每 tick 重复设置覆盖用户手动切换
@@ -288,7 +308,11 @@ public class FloatBarService extends Service {
                         }
                     }
                 }
-                if (targetType != 0 && !shown) showCurrent();
+                if (targetType != 0 && !shown) {
+                    showCurrent();
+                    // 首次显示自动收缩（默认贴边隐藏）
+                    if (edgeSide >= 0) scheduleHide(1500);
+                }
                 if (targetType == 0 && shown) removeBar();
             } catch (Exception e) { }
             handler.postDelayed(monitor, 500);
@@ -309,27 +333,30 @@ public class FloatBarService extends Service {
         } else if (currentType == 2) {
             curView = btnView;
             params.width = expanded ? dp(68) : edgeW;
-            params.height = expanded ? dp(132) : edgeH;
+            params.height = expanded ? btnBarHeight() : edgeH;
             // 初始化展开视觉（外框 btn_frame）
             if (expanded) {
                 btnView.setBackgroundColor(0x00000000);
-                btnView.findViewById(R.id.btn_container)
-                        .setBackgroundResource(R.drawable.btn_frame);
-                btnView.findViewById(R.id.btn_main).setVisibility(View.VISIBLE);
-                btnView.findViewById(R.id.btn_mode).setVisibility(View.VISIBLE);
-                btnView.findViewById(R.id.btn_viewpoint).setVisibility(View.VISIBLE);
+                btnView.findViewById(R.id.btn_container).setVisibility(View.VISIBLE);
                 btnEdgeHint.setVisibility(View.GONE);
                 tvBtnText.setVisibility(View.VISIBLE);
                 tvBtnText.setTextSize(16);
                 tvModeText.setVisibility(View.VISIBLE);
                 tvVpText.setVisibility(View.VISIBLE);
-                // 加载该应用配置的视角
+                // 加载该应用配置的视角与模式（每应用独立）
                 if (lastTopPkg != null) {
                     try {
                         org.json.JSONObject o = new org.json.JSONObject(
                                 prefs.getString("app3d_" + lastTopPkg, "{}"));
                         currentVp = o.optInt("viewpoint", 1);
                         tvVpText.setText(currentVp == 1 ? "右左" : "左右");
+                        currentMode = o.optInt("mode", 0);
+                        tvModeText.setText(MODES[currentMode]);
+                        // 按钮显示开关
+                        btnMode.setVisibility(o.optInt("showMode", 1) == 1
+                                ? View.VISIBLE : View.GONE);
+                        btnVp.setVisibility(o.optInt("showVp", 1) == 1
+                                ? View.VISIBLE : View.GONE);
                     } catch (Exception e) { }
                 } else {
                     tvVpText.setText(currentVp == 1 ? "右左" : "左右");
@@ -355,9 +382,47 @@ public class FloatBarService extends Service {
         @Override
         public void run() {
             updateScreenSize();
+            checkRotation180();
             handler.postDelayed(this, 1000);
         }
     };
+
+    /** V5G 补丁：横屏 180 度旋转后物理屏左右互换，3D 视角需自动跟随切换（仅 K3DX-V5G） */
+    private void checkRotation180() {
+        if (!IS_V5G) return;                       // 仅 V5G 机型
+        if (currentType != 2) return;              // 仅 3D应用模式
+        int rot = wm.getDefaultDisplay().getRotation();
+        if (lastRotation == -1) { lastRotation = rot; return; }
+        // 横屏 ROTATION_90(1) ↔ ROTATION_270(3)（180 度旋转）→ 自动切换视角
+        if ((lastRotation == 1 || lastRotation == 3)
+                && (rot == 1 || rot == 3) && lastRotation != rot) {
+            // 自动切换视角（右左↔左右），跟随物理屏方向
+            currentVp = (currentVp == 1) ? 2 : 1;
+            tvVpText.setText(currentVp == 1 ? "右左" : "左右");
+            com.wztech.service3d.Service3D.setViewPoint(currentVp == 1 ? 1 : 0);
+            android.util.Log.i(TAG, "V5G 180度旋转 → 自动切换视角: " + currentVp);
+            // 同步写入该应用配置
+            if (lastTopPkg != null) {
+                try {
+                    org.json.JSONObject o = new org.json.JSONObject(
+                            prefs.getString("app3d_" + lastTopPkg, "{}"));
+                    o.put("viewpoint", currentVp);
+                    prefs.edit().putString("app3d_" + lastTopPkg, o.toString()).apply();
+                } catch (Exception e) { }
+            }
+        }
+        lastRotation = rot;
+    }
+
+    /** 悬浮窗外框高度（随可见按钮数变化）：主按钮40 + 每个额外按钮36(4间距+32) + padding 16 */
+    private int btnBarHeight() {
+        boolean showMode = btnMode.getVisibility() == View.VISIBLE;
+        boolean showVp = btnVp.getVisibility() == View.VISIBLE;
+        int h = 16 + 40;                    // padding + 主按钮
+        if (showMode) h += 36;
+        if (showVp) h += 36;
+        return dp(h);
+    }
 
     private void updateScreenSize() {
         screenW = wm.getDefaultDisplay().getWidth();
@@ -552,14 +617,18 @@ public class FloatBarService extends Service {
                         dragging = false;
                         return true;
                     }
-                    // 点击：按位置区分 上=主按钮 / 中=模式 / 下=视角（官方风格立即响应）
+                    // 点击：按位置区分（随可见按钮数动态）上=主 / 中=模式 / 下=视角
                     float relY = event.getRawY() - params.y;
                     android.util.Log.i(TAG, "tap relY=" + relY + " y=" + params.y);
+                    boolean mShow = btnMode.getVisibility() == View.VISIBLE;
+                    boolean vShow = btnVp.getVisibility() == View.VISIBLE;
                     if (relY < dp(50)) {
                         toggleMain();          // 主按钮：2D↔3D
-                    } else if (relY < dp(92)) {
+                    } else if (mShow && relY < dp(88)) {
                         cycleMode();           // 模式按钮：HSBS/FSBS/2D3D
-                    } else {
+                    } else if (vShow && !mShow && relY < dp(88)) {
+                        cycleViewpoint();      // 仅视角可见时：中区即视角
+                    } else if (vShow) {
                         cycleViewpoint();      // 视角按钮：右左/左右
                     }
                     return true;
@@ -657,27 +726,20 @@ public class FloatBarService extends Service {
             barContainer.setBackgroundColor(0x00000000);
             barEdgeHint.setVisibility(View.VISIBLE);
             android.view.ViewGroup.LayoutParams lp = barEdgeHint.getLayoutParams();
-            lp.width = Math.max(3, edgeW / 5);   // 触摸区的 1/5
+            lp.width = Math.round(2.0f * getResources().getDisplayMetrics().density); // 2dp
             barEdgeHint.setLayoutParams(lp);
             ((android.widget.FrameLayout.LayoutParams) barEdgeHint.getLayoutParams()).gravity =
                     (edgeSide == 0) ? android.view.Gravity.LEFT : android.view.Gravity.RIGHT;
         } else if (currentType == 2) {
-            // 按钮收缩：隐藏两个按钮本体，只显示 2.5dp 白色细条
-            btnView.setBackgroundColor(0x00000000);
-            btnView.findViewById(R.id.btn_container)
-                    .setBackgroundResource(android.R.color.transparent);
-            btnView.findViewById(R.id.btn_main).setVisibility(View.GONE);
-            btnView.findViewById(R.id.btn_mode).setVisibility(View.GONE);
-            btnView.findViewById(R.id.btn_viewpoint).setVisibility(View.GONE);
-            tvBtnText.setVisibility(View.GONE);
-            tvModeText.setVisibility(View.GONE);
-            tvVpText.setVisibility(View.GONE);
-            btnEdgeHint.setVisibility(View.VISIBLE);
-            android.view.ViewGroup.LayoutParams lp2 = btnEdgeHint.getLayoutParams();
-            lp2.width = Math.round(2.5f * getResources().getDisplayMetrics().density); // 2.5dp
+            // 收缩：内容容器整体隐藏，只显示独立细条层（FrameLayout 绝对定位，
+            // 高度=窗口高，1/2/3按钮完全一致）
+            btnView.findViewById(R.id.btn_container).setVisibility(View.GONE);
+            android.widget.FrameLayout.LayoutParams lp2 =
+                    (android.widget.FrameLayout.LayoutParams) btnEdgeHint.getLayoutParams();
+            lp2.gravity = (edgeSide == 0) ? android.view.Gravity.LEFT
+                    : android.view.Gravity.RIGHT;
             btnEdgeHint.setLayoutParams(lp2);
-            ((android.widget.LinearLayout.LayoutParams) btnEdgeHint.getLayoutParams()).gravity =
-                    (edgeSide == 0) ? android.view.Gravity.LEFT : android.view.Gravity.RIGHT;
+            btnEdgeHint.setVisibility(View.VISIBLE);
         }
         wm.updateViewLayout(curView, params);
         savePos();
@@ -690,7 +752,7 @@ public class FloatBarService extends Service {
         int sx = (edgeSide == 0) ? 0 : (screenW - (currentType == 2 ? dp(68) : barW));
         int sy = params.y;
         int w = (currentType == 2) ? dp(68) : barW;
-        int h = (currentType == 2) ? dp(132) : barH;
+        int h = (currentType == 2) ? btnBarHeight() : barH;
         if (sy > screenH - h) sy = screenH - h;
         params.x = sx;
         params.y = sy;
@@ -704,9 +766,7 @@ public class FloatBarService extends Service {
             btnView.setBackgroundColor(0x00000000);
             btnView.findViewById(R.id.btn_container)
                     .setBackgroundResource(R.drawable.btn_frame);
-            btnView.findViewById(R.id.btn_main).setVisibility(View.VISIBLE);
-            btnView.findViewById(R.id.btn_mode).setVisibility(View.VISIBLE);
-            btnView.findViewById(R.id.btn_viewpoint).setVisibility(View.VISIBLE);
+            btnView.findViewById(R.id.btn_container).setVisibility(View.VISIBLE);
             btnEdgeHint.setVisibility(View.GONE);
             tvBtnText.setVisibility(View.VISIBLE);
             tvBtnText.setTextSize(16);

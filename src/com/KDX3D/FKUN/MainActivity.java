@@ -62,17 +62,13 @@ public class MainActivity extends Activity {
     private static final String CFG_DIR = "/storage/emulated/0";
 
     // 参考库: {包名, 显示名, 完整官方base64串}
-    private static final String[][] REF_LIB = {
-            {"", "◆推荐·深度场景型（3D视角游戏通用）", "S0RYHF96J10B/woAPhBkAAAAAAAAAAAAAAAAAAAAAAA="},
-            {"", "◆平面分层型（固定视角/2D游戏通用）", "S0RYHHeeBWoB/2QAYWFkAAAAAAAAAAAAAAAAAAAAAAA="},
-            {"", "◆自定义（从下方官方列表选择）", ""},
-    };
-
     private ListView listView;
     private List<AppInfo> appList = new ArrayList<AppInfo>();
     private AppAdapter adapter;
     private Map<String, byte[]> cfgMap = new LinkedHashMap<String, byte[]>();
     private final Map<String, Drawable> iconCache = new HashMap<String, Drawable>();
+    private List<AppInfo> allApps = new ArrayList<AppInfo>();   // 完整列表（搜索过滤用）
+    private String searchKey = "";
 
     /** 配置文件（App 应用文件夹 config 目录：覆盖更新保留，写入无权限问题） */
     private static final String CONFIG_FILE =
@@ -163,6 +159,18 @@ public class MainActivity extends Activity {
                 } else {
                     showTypeDialog(app);
                 }
+            }
+        });
+
+        // 搜索框：实时过滤应用列表
+        final android.widget.EditText etSearch = (android.widget.EditText) findViewById(R.id.et_search);
+        etSearch.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence c, int a, int b, int d) { }
+            @Override public void onTextChanged(CharSequence c, int a, int b, int d) { }
+            @Override public void afterTextChanged(android.text.Editable e) {
+                searchKey = e.toString();
+                appList = filterApps(allApps);
+                adapter.notifyDataSetChanged();
             }
         });
 
@@ -655,11 +663,15 @@ public class MainActivity extends Activity {
                 java.util.Collections.sort(result, new java.util.Comparator<AppInfo>() {
                     @Override
                     public int compare(AppInfo a, AppInfo b) {
-                        if (a.hasCfg != b.hasCfg) return a.hasCfg ? -1 : 1;
+                        // 排序：3D游戏靠前 > 3D应用 > 未设置应用最后
+                        int sa = a.hasCfg ? 0 : (a.hasApp3d ? 1 : 2);
+                        int sb = b.hasCfg ? 0 : (b.hasApp3d ? 1 : 2);
+                        if (sa != sb) return sa - sb;
                         return a.label.compareTo(b.label);
                     }
                 });
-                return result;
+                allApps = result;
+                return filterApps(result);
             }
 
             @Override
@@ -671,6 +683,19 @@ public class MainActivity extends Activity {
                         "应用 " + appList.size() + " 个，" + cfgMap.size() + " 个已配置3D\n点击应用设置，保存后重启游戏生效");
             }
         }.execute();
+    }
+
+    /** 按搜索关键词过滤应用列表 */
+    private List<AppInfo> filterApps(List<AppInfo> src) {
+        if (searchKey == null || searchKey.length() == 0) return src;
+        List<AppInfo> out = new ArrayList<AppInfo>();
+        String k = searchKey.toLowerCase();
+        for (AppInfo a : src) {
+            if (a.label.toLowerCase().contains(k) || a.pkg.toLowerCase().contains(k)) {
+                out.add(a);
+            }
+        }
+        return out;
     }
 
     /** 类型选择弹窗：单选类型，勾选即保存默认并直接进入对应配置界面 */
@@ -719,12 +744,40 @@ public class MainActivity extends Activity {
         typeDlg.show();
     }
 
+    /** 默认推荐模板：深度·盗墓笔记（最通用的深度场景型参数 eye=10/focus=62/near=16） */
+    private static final String DEFAULT_TMPL =
+            "S0RYHF96J10B/woAPhBkAAAAAAAAAAAAAAAAAAAAAAA=";
+
+    /** 找默认模板索引 */
+    private int findDefaultIdx() {
+        String[][] lib = buildLib();
+        for (int i = 0; i < lib.length; i++) {
+            if (DEFAULT_TMPL.equals(lib[i][2])) return i;
+        }
+        return 0;
+    }
+
+    /** 根据已有配置串反查模板索引（无记忆时显示对应模板名称） */
+    private int matchTemplateIdx(byte[] cur) {
+        if (cur == null) return 0;   // 无配置：默认深度场景型
+        String[][] lib = buildLib();
+        for (int i = 0; i < lib.length; i++) {
+            if (lib[i][2] != null && lib[i][2].length() > 0) {
+                try {
+                    byte[] t = Base64.decode(lib[i][2], Base64.DEFAULT);
+                    if (java.util.Arrays.equals(cur, t)) return i;
+                } catch (Exception e) { }
+            }
+        }
+        return 0;   // 未匹配（自定义配置）：默认深度场景型
+    }
+
     /** 勾选 3D游戏：按默认模板（深度场景型第一个官方串）写入 .gles.cfg */
     private void saveDefaultGameCfg(AppInfo app) {
         String[][] lib = buildLib();
         String[] def = null;
         for (String[] t : lib) {
-            if (t[1] != null && t[1].startsWith("深度·")) { def = t; break; }
+            if (DEFAULT_TMPL.equals(t[2])) { def = t; break; }   // 默认深度·盗墓笔记
         }
         if (def == null) return;
         try {
@@ -758,6 +811,8 @@ public class MainActivity extends Activity {
             o.put("auto", 0);
             o.put("mode", 0);
             o.put("btn", 1);
+            o.put("showMode", 1);
+            o.put("showVp", 1);
             getSharedPreferences("floatbar", MODE_PRIVATE).edit()
                     .putString("app3d_" + app.pkg, o.toString()).apply();
             app.hasApp3d = true;
@@ -780,6 +835,7 @@ public class MainActivity extends Activity {
         final SharedPreferences prefs = getSharedPreferences("floatbar", MODE_PRIVATE);
         // 读取已有配置（JSON: viewpoint/auto/mode/btn）
         int viewpoint = 2, auto = 0, mode = 0, btn = 1;   // 默认视角2
+        int showMode = 1, showVp = 1;
         try {
             String s = prefs.getString("app3d_" + app.pkg, null);
             if (s != null) {
@@ -788,6 +844,8 @@ public class MainActivity extends Activity {
                 auto = o.optInt("auto", 0);
                 mode = o.optInt("mode", 0);
                 btn = o.optInt("btn", 1);
+                showMode = o.optInt("showMode", 1);
+                showVp = o.optInt("showVp", 1);
             }
         } catch (Exception e) { }
 
@@ -807,6 +865,20 @@ public class MainActivity extends Activity {
 
         final Switch swBtn = (Switch) v.findViewById(R.id.sw_app_btn);
         swBtn.setChecked(btn == 1);
+        // 悬浮窗按钮显示开关（模式/视角）——仅悬浮按钮开启后才可选
+        final Switch swShowMode = (Switch) v.findViewById(R.id.sw_show_mode);
+        final Switch swShowVp = (Switch) v.findViewById(R.id.sw_show_vp);
+        swShowMode.setChecked(showMode == 1);
+        swShowVp.setChecked(showVp == 1);
+        swShowMode.setEnabled(btn == 1);
+        swShowVp.setEnabled(btn == 1);
+        swBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton b, boolean checked) {
+                swShowMode.setEnabled(checked);
+                swShowVp.setEnabled(checked);
+            }
+        });
 
         new AlertDialog.Builder(this)
                 .setTitle("3D应用设置")
@@ -825,6 +897,8 @@ public class MainActivity extends Activity {
                             o.put("auto", autoV);
                             o.put("mode", modeV);
                             o.put("btn", btnV);
+                            o.put("showMode", swShowMode.isChecked() ? 1 : 0);
+                            o.put("showVp", swShowVp.isChecked() ? 1 : 0);
                             prefs.edit().putString("app3d_" + app.pkg, o.toString()).apply();
                         } catch (Exception e) { }
                         // 应用视角（写 .3d.properties + send2sf 视点）
@@ -878,14 +952,9 @@ public class MainActivity extends Activity {
 
         byte[] cur = cfgMap.get(app.pkg);
 
-        final Spinner spRef = (Spinner) v.findViewById(R.id.sp_ref);
+        final TextView spRef = (TextView) v.findViewById(R.id.sp_ref);
         final String[][] lib = buildLib();
-        final String[] refNames = new String[lib.length];
-        for (int i = 0; i < lib.length; i++) refNames[i] = lib[i][1];
-        ArrayAdapter<String> spAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, refNames);
-        spAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spRef.setAdapter(spAdapter);
+        final int[] curSelIdx = new int[]{0};
 
         final TextView tvParam = (TextView) v.findViewById(R.id.tv_param_info);
 
@@ -964,21 +1033,67 @@ public class MainActivity extends Activity {
                     .getInt("tmpl_" + app.pkg, -1);
             if (pi >= 0) savedIdx = pi;
         }
-        spRef.setSelection(savedIdx != null ? savedIdx : (cur != null ? 2 : 0));
+        curSelIdx[0] = savedIdx != null ? savedIdx
+                : (cur != null ? matchTemplateIdx(cur) : findDefaultIdx());
+        spRef.setText(lib[curSelIdx[0]][1]);
 
         // 快速匹配提示
         TextView tvTip = (TextView) v.findViewById(R.id.tv_match_tip);
         tvTip.setText(guessType(app.pkg, app.label));
 
-        spRef.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        spRef.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                updateParamInfo(lib[pos], tvParam);
+            public void onClick(View vv) {
+                // 模板选择+搜索对话框
+                View dv = LayoutInflater.from(MainActivity.this)
+                        .inflate(R.layout.dialog_template_search, null);
+                final android.widget.EditText et = (android.widget.EditText)
+                        dv.findViewById(R.id.et_tmpl_search);
+                final ListView lv = (ListView) dv.findViewById(R.id.lv_tmpl);
+                final String[] names = new String[lib.length];
+                for (int i = 0; i < lib.length; i++) names[i] = lib[i][1];
+                final ArrayAdapter<String> ad = new ArrayAdapter<String>(
+                        MainActivity.this, android.R.layout.simple_list_item_1, names);
+                lv.setAdapter(ad);
+                lv.setSelection(curSelIdx[0]);
+                et.addTextChangedListener(new android.text.TextWatcher() {
+                    @Override public void beforeTextChanged(CharSequence c, int a, int b, int d) { }
+                    @Override public void onTextChanged(CharSequence c, int a, int b, int d) { }
+                    @Override public void afterTextChanged(android.text.Editable e) {
+                        String k = e.toString().trim().toLowerCase();
+                        java.util.ArrayList<String> out = new java.util.ArrayList<String>();
+                        for (String n : names) {
+                            if (k.length() == 0 || n.toLowerCase().contains(k)) out.add(n);
+                        }
+                        ad.clear();
+                        for (String n : out) ad.add(n);
+                        ad.notifyDataSetChanged();
+                    }
+                });
+                final android.app.AlertDialog dlg = new android.app.AlertDialog.Builder(MainActivity.this)
+                        .setTitle("选择参考模板（" + lib.length + " 条）")
+                        .setView(dv)
+                        .setNegativeButton("取消", null)
+                        .create();
+                lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+                        String selName = (String) parent.getItemAtPosition(pos);
+                        for (int i = 0; i < lib.length; i++) {
+                            if (lib[i][1].equals(selName)) {
+                                curSelIdx[0] = i;
+                                spRef.setText(lib[i][1]);
+                                updateParamInfo(lib[i], tvParam);
+                                break;
+                            }
+                        }
+                        dlg.dismiss();
+                    }
+                });
+                dlg.show();
             }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
         });
-        updateParamInfo(lib[spRef.getSelectedItemPosition()], tvParam);
+        updateParamInfo(lib[curSelIdx[0]], tvParam);
 
         new AlertDialog.Builder(this)
                 .setTitle("3D参数设置")
@@ -986,7 +1101,7 @@ public class MainActivity extends Activity {
                 .setPositiveButton("保存", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface d, int which) {
-                        String[] sel = lib[spRef.getSelectedItemPosition()];
+                        String[] sel = lib[curSelIdx[0]];
                         if (sel[2] == null || sel[2].length() == 0) {
                             Toast.makeText(MainActivity.this, "请先选择参考模板", Toast.LENGTH_SHORT).show();
                             return;
@@ -995,9 +1110,9 @@ public class MainActivity extends Activity {
                         boolean ok = writeCfg(app.pkg, raw);
                         if (ok) {
                             cfgMap.put(app.pkg, raw);
-                            pkgSelIdx.put(app.pkg, spRef.getSelectedItemPosition());
+                            pkgSelIdx.put(app.pkg, curSelIdx[0]);
                             getSharedPreferences("floatbar", MODE_PRIVATE).edit()
-                                    .putInt("tmpl_" + app.pkg, spRef.getSelectedItemPosition()).apply();
+                                    .putInt("tmpl_" + app.pkg, curSelIdx[0]).apply();
                             // 保存 3D深度悬浮窗开关状态 + 全部开启状态
                             getSharedPreferences("floatbar", MODE_PRIVATE).edit()
                                     .putBoolean("fb_" + app.pkg, swGameFb.isChecked())
@@ -1067,9 +1182,25 @@ public class MainActivity extends Activity {
 
     /** 构建模板库 = 内置3 + 官方119 */
     private String[][] buildLib() {
-        String[][] lib = new String[REF_LIB.length + REF_OFFICIAL.length][];
-        System.arraycopy(REF_LIB, 0, lib, 0, REF_LIB.length);
-        System.arraycopy(REF_OFFICIAL, 0, lib, REF_LIB.length, REF_OFFICIAL.length);
+        // 官方模板：推荐模板（带描述）排最前，其余保持原名
+        java.util.List<String[]> rec = new java.util.ArrayList<String[]>();
+        java.util.List<String[]> rest = new java.util.ArrayList<String[]>();
+        for (String[] t : REF_OFFICIAL) {
+            String name = t[1];
+            if (DEFAULT_TMPL.equals(t[2])) {
+                // 默认推荐：3D视角游戏通用（深度场景型）
+                rec.add(new String[]{t[0], "推荐·" + name + "（3D视角游戏通用）", t[2]});
+            } else if ("S0RYHHhaxusB/2QAV1dkAAAAAAAAAAAAAAAAAAAAAAA=".equals(t[2])) {
+                // 固定视角游戏通用（平面分层型）
+                rec.add(new String[]{t[0], "推荐·" + name + "（固定视角游戏通用）", t[2]});
+            } else {
+                rest.add(new String[]{t[0], t[1], t[2]});
+            }
+        }
+        String[][] lib = new String[rec.size() + rest.size()][];
+        int i = 0;
+        for (String[] t : rec) lib[i++] = t;
+        for (String[] t : rest) lib[i++] = t;
         return lib;
     }
 
@@ -1131,8 +1262,41 @@ public class MainActivity extends Activity {
             return true;
         } catch (Exception e) {
             Log.e(TAG, "写入异常", e);
+            // 写入失败：询问用户是否重置（不自动重置，避免误删配置）
+            confirmResetGles();
             return false;
         }
+    }
+
+    /** 写入失败时询问是否重置 .gles.cfg（用户确认后才重置，不自动执行） */
+    private void confirmResetGles() {
+        try {
+            new AlertDialog.Builder(this)
+                    .setTitle("写入配置失败")
+                    .setMessage(".gles.cfg 可能已损坏（无法写入）。\n是否重置配置文件？\n\n重置会清除所有3D游戏配置，需要重新套模板。")
+                    .setPositiveButton("重置", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface d, int which) {
+                            // 用户确认：删除损坏文件，重建空配置
+                            try {
+                                File f = new File(CFG_DIR, CFG_NAME);
+                                if (f.exists()) f.delete();
+                                FileOutputStream fos = new FileOutputStream(f);
+                                fos.write(("#package_name   enableMix,eye_angle,focus_plane_pos,near_plane_pos,left_right_exchange\n")
+                                        .getBytes("UTF-8"));
+                                fos.close();
+                                loadCfg();
+                                adapter.notifyDataSetChanged();
+                                Toast.makeText(MainActivity.this, "已重置，请重新配置3D游戏",
+                                        Toast.LENGTH_SHORT).show();
+                            } catch (Exception e) {
+                                Log.e(TAG, "重置失败", e);
+                            }
+                        }
+                    })
+                    .setNegativeButton("取消", null)
+                    .show();
+        } catch (Exception e) { }
     }
 
     private boolean removeCfg(String pkg) {
