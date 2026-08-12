@@ -80,9 +80,9 @@ Naked-eye 3D phones based on KDX (Kangde Xin) technology have fragmented 3D feat
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Background persistence | Android 6.0+ |
 
 > **⚠️ About game depth adjust**: writing `persist.sys.3deffect` (depth) requires **SELinux permissive mode**.
-> - When SELinux is Enforcing, enabling the game depth float bar prompts for root (**once only**)
+> - When SELinux is Enforcing, enabling the game depth float bar prompts for root
 > - With root, the app automatically runs `setenforce 0` — no manual steps needed
-> - Devices without root on Enforcing SELinux cannot adjust depth (Permissive devices like V5G unaffected)
+> - Devices without root on Enforcing SELinux cannot adjust depth
 | `RECEIVE_BOOT_COMPLETED` | Boot autostart | Normal |
 
 **App Detection**
