@@ -78,6 +78,11 @@
 |------|------|------|
 | `FOREGROUND_SERVICE` | 前台服务（悬浮窗常驻） | Android 9+ |
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | 后台驻留防杀 | Android 6.0+ |
+
+> **⚠️ 关于游戏深度调节**：`persist.sys.3deffect`（深度）需要 **SELinux 宽松模式** 才能写入。
+> - App 检测到 SELinux 为 Enforcing 时，开启游戏深度悬浮窗会提示需要 root（**只提示一次**）
+> - **已获取 root 时 App 自动执行 `setenforce 0`**，无需手动操作
+> - 未 root 且 Enforcing 的设备无法深度调节（V5G 等 Permissive 设备不受影响）
 | `RECEIVE_BOOT_COMPLETED` | 开机自启 | 普通权限 |
 
 **应用检测**
