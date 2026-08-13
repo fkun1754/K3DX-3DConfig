@@ -167,6 +167,7 @@ python build.py
 
 ## 📝 Changelog
 
+- **1.2.1**: Fixed V5G rotation patch not working; UI & notes polish
 - **1.2**: Search on both app picker and template picker (recommended templates on top); independent mode/viewpoint button toggles on 3D-app floating window; fixed V5G viewpoint not following 180° landscape rotation (auto-switch added); UI & performance polish
 - **1.1**: Viewpoint switch button (right-left/left-right) on 3D-app floating window; fixed process guard & config persistence bugs; UI polish
 - **1.0**: First open-source release: complete 3D game/app config + floating windows

@@ -243,6 +243,9 @@ public class MainActivity extends Activity {
         // 启动时申请 root（Magisk 授权弹窗），用于进程守护/后台驻留（努比亚白名单）
         if (isRoot()) {
             addToWhitelist();
+            // 自动设置 SELinux 宽松（游戏深度调节 setprop 需要）
+            suExec("setenforce 0");
+            Log.i(TAG, "已自动设置 SELinux 宽松");
         }
 
         // 打开应用时获取权限：悬浮窗 + 后台运行（只一次）+ 存储 + 电池优化 + 通知（分版本）
@@ -327,6 +330,21 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    /** 检测 SELinux 是否 Enforcing（游戏深度调节 setprop 需要宽松模式） */
+    private boolean isSelinuxEnforcing() {
+        try {
+            java.io.File f = new java.io.File("/sys/fs/selinux/enforce");
+            if (f.exists()) {
+                BufferedReader br = new BufferedReader(
+                        new InputStreamReader(new java.io.FileInputStream(f)));
+                String v = br.readLine();
+                br.close();
+                return v != null && v.trim().equals("1");
+            }
+        } catch (Exception e) { }
+        return false;   // 读不到/不存在：视为不强制（多数设备默认可读）
     }
 
     /**
@@ -865,18 +883,17 @@ public class MainActivity extends Activity {
 
         final Switch swBtn = (Switch) v.findViewById(R.id.sw_app_btn);
         swBtn.setChecked(btn == 1);
-        // 悬浮窗按钮显示开关（模式/视角）——仅悬浮按钮开启后才可选
+        // 子选项（模式/视角按钮开关）：仅开启悬浮按钮后显示
+        final View llSubOpts = v.findViewById(R.id.ll_sub_opts);
         final Switch swShowMode = (Switch) v.findViewById(R.id.sw_show_mode);
         final Switch swShowVp = (Switch) v.findViewById(R.id.sw_show_vp);
         swShowMode.setChecked(showMode == 1);
         swShowVp.setChecked(showVp == 1);
-        swShowMode.setEnabled(btn == 1);
-        swShowVp.setEnabled(btn == 1);
+        llSubOpts.setVisibility(btn == 1 ? View.VISIBLE : View.GONE);
         swBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton b, boolean checked) {
-                swShowMode.setEnabled(checked);
-                swShowVp.setEnabled(checked);
+                llSubOpts.setVisibility(checked ? View.VISIBLE : View.GONE);
             }
         });
 
@@ -976,6 +993,26 @@ public class MainActivity extends Activity {
             public void onCheckedChanged(CompoundButton b, boolean checked) {
                 if (checked) {
                     cbAllFb.setVisibility(View.VISIBLE);
+                    // SELinux 宽松检查（深度调节 setprop 需要）：仅 Enforcing 设备提示，只一次
+                    if (isSelinuxEnforcing()) {
+                        SharedPreferences sp = getSharedPreferences("floatbar", MODE_PRIVATE);
+                        if (!sp.getBoolean("selinux_prompted", false)) {
+                            sp.edit().putBoolean("selinux_prompted", true).apply();
+                            if (isRoot()) {
+                                suExec("setenforce 0");
+                                Toast.makeText(MainActivity.this,
+                                        "已自动设置 SELinux 宽松，深度调节可用",
+                                        Toast.LENGTH_SHORT).show();
+                            } else {
+                                new AlertDialog.Builder(MainActivity.this)
+                                        .setTitle("需要 root 权限")
+                                        .setMessage("游戏深度调节需要设置 SELinux 为宽松，需要 root 权限。\n\n"
+                                                + "请授予 root 权限后重新开启，App 会自动设置。")
+                                        .setPositiveButton("知道了", null)
+                                        .show();
+                            }
+                        }
+                    }
                 } else {
                     cbAllFb.setVisibility(View.GONE);
                     if (cbAllFb.isChecked()) {

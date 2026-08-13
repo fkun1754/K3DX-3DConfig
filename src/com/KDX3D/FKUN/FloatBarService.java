@@ -392,10 +392,12 @@ public class FloatBarService extends Service {
         if (!IS_V5G) return;                       // 仅 V5G 机型
         if (currentType != 2) return;              // 仅 3D应用模式
         int rot = wm.getDefaultDisplay().getRotation();
+        // 只关心横屏（1=90° / 3=270°）：竖屏或旋转中间态不记录，避免污染 lastRotation
+        if (rot != 1 && rot != 3) return;
         if (lastRotation == -1) { lastRotation = rot; return; }
         // 横屏 ROTATION_90(1) ↔ ROTATION_270(3)（180 度旋转）→ 自动切换视角
-        if ((lastRotation == 1 || lastRotation == 3)
-                && (rot == 1 || rot == 3) && lastRotation != rot) {
+        if (lastRotation != rot) {
+            android.util.Log.i(TAG, "V5G 旋转检测: " + lastRotation + " -> " + rot);
             // 自动切换视角（右左↔左右），跟随物理屏方向
             currentVp = (currentVp == 1) ? 2 : 1;
             tvVpText.setText(currentVp == 1 ? "右左" : "左右");

@@ -21,7 +21,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="3D视角（左右眼对调）"
+            android:text="3D视角"
             android:textSize="14sp"
             android:textColor="#333333"/>
         <RadioGroup
@@ -34,13 +34,13 @@
                 android:id="@+id/rb_vp1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="视角1（右左）"
+                android:text="右左"
                 android:textSize="14sp"/>
             <RadioButton
                 android:id="@+id/rb_vp2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="视角2（左右）"
+                android:text="左右"
                 android:textSize="14sp"/>
         </RadioGroup>
 
@@ -54,7 +54,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="启动时直接开启3D模式"
+                android:text="启动时直接开启3D"
                 android:textSize="14sp"/>
             <Spinner
                 android:id="@+id/sp_auto_mode"
@@ -85,49 +85,58 @@
                 android:layout_height="wrap_content"/>
         </LinearLayout>
 
-        <!-- 悬浮窗显示模式按钮（HSBS/FSBS/2D3D 循环） -->
+        <!-- 子选项（仅开启悬浮按钮后显示） -->
         <LinearLayout
+            android:id="@+id/ll_sub_opts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-            <TextView
-                android:layout_width="0dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- 悬浮窗显示模式按钮 -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="显示模式按钮（HSBS/FSBS/2D3D）"
-                android:textSize="14sp"/>
-            <Switch
-                android:id="@+id/sw_show_mode"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="显示模式按钮"
+                    android:textSize="14sp"/>
+                <Switch
+                    android:id="@+id/sw_show_mode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <!-- 悬浮窗显示视角按钮 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="显示视角按钮"
+                    android:textSize="14sp"/>
+                <Switch
+                    android:id="@+id/sw_show_vp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- 悬浮窗显示视角按钮（右左/左右） -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="显示视角按钮（右左/左右）"
-                android:textSize="14sp"/>
-            <Switch
-                android:id="@+id/sw_show_vp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-        <!-- 悬浮按钮功能说明 -->
+        <!-- 悬浮按钮功能说明（重点说明） -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="12sp"
             android:textColor="#666666"
             android:paddingTop="8dp"
-            android:text="悬浮按钮说明：\n· 上按钮：点击切换 2D ↔ 3D 显示\n· 下按钮：点击循环切换模式（HSBS→FSBS→2D3D）\n\n名词解释：\n· HSBS：半幅SBS——左右画面各占屏幕一半宽（标准 side-by-side 格式）\n· FSBS：全幅SBS——左右眼全分辨率画面（无压缩损失）\n· 2D3D：2D转3D——普通2D画面做深度映射生成立体\n\n按钮靠边自动收缩为边缘细条，点击/滑动唤出"/>
+            android:text="说明：\n· 启动时直接开启3D：进入应用自动开3D（可选HSBS/FSBS/2D转3D模式）\n· 悬浮按钮：主按钮点击切换2D↔3D；模式按钮循环切换HSBS（半幅）/FSBS（全幅）/2D转3D（深度映射）；视角按钮切换右左/左右\n· 按钮靠边自动收缩为细条，点击/滑动唤出；离开应用自动回到2D\n· V5G：横屏旋转180°视角自动跟随互换（已修复）"/>
     </LinearLayout>
 </ScrollView>
