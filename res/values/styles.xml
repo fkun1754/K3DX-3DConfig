@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- API 19/20 兼容主题（Holo） -->
+    <style name="AppTheme" parent="@android:style/Theme.Holo.Light.NoActionBar">
+        <item name="android:colorAccent">#4A6CF7</item>
+        <item name="android:windowBackground">#F5F6F8</item>
+    </style>
+    <style name="AppDialog" parent="@android:style/Theme.Holo.Light.Dialog">
+        <item name="android:colorAccent">#4A6CF7</item>
+        <item name="android:windowMinWidthMajor">92%</item>
+        <item name="android:windowMinWidthMinor">92%</item>
+    </style>
+</resources>

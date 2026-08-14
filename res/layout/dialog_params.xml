@@ -13,8 +13,9 @@
             android:id="@+id/tv_pkg_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:textColor="#333333"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#4A6CF7"
             android:paddingBottom="8dp"/>
 
         <!-- 快速匹配提示 -->
@@ -30,9 +31,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="参考模板（选同类型游戏的参数）"
+            android:text="参考模板"
             android:textSize="14sp"
-            android:textColor="#333333"/>
+            android:textColor="#1A1C20"
+            android:textStyle="bold"/>
         <TextView
             android:id="@+id/sp_ref"
             android:layout_width="match_parent"
@@ -40,7 +42,7 @@
             android:padding="10dp"
             android:layout_marginBottom="4dp"
             android:background="@drawable/ref_btn_bg"
-            android:textColor="#FFFFFF"
+            android:textColor="#1A1C20"
             android:textSize="14sp"
             android:textStyle="bold"
             android:text="▾ 点击选择/搜索模板"/>
@@ -61,12 +63,20 @@
             android:textColor="#666666"
             android:paddingBottom="10dp"/>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="#EDEFF2"/>
+
         <!-- 3D深度 (persist.sys.3deffect, 同系统3Dconfig；按应用记忆) -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="3D深度 (0=关闭, 20=最强, 同系统3Dconfig)"
-            android:textSize="14sp"/>
+            android:paddingTop="8dp"
+            android:text="3D深度"
+            android:textSize="14sp"
+            android:textColor="#1A1C20"
+            android:textStyle="bold"/>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -86,22 +96,31 @@
                 android:textSize="14sp"/>
         </LinearLayout>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="#EDEFF2"/>
+
         <!-- 3D深度悬浮窗开关（按应用） -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp">
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="3D深度悬浮窗"
-                android:textSize="14sp"/>
+                android:textSize="14sp"
+                android:textColor="#1A1C20"
+                android:textStyle="bold"/>
             <Switch
                 android:id="@+id/sw_game_fb"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" android:track="@drawable/switch_track" android:thumb="@drawable/switch_thumb"/>
         </LinearLayout>
 
         <!-- 全部游戏开启（仅在悬浮窗开关开启后显示） -->
@@ -109,7 +128,7 @@
             android:id="@+id/cb_all_fb"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="全部开启（所有3D游戏都强制开启深度悬浮窗）"
+            android:text="全部开启"
             android:textSize="13sp"
             android:visibility="gone"/>
     </LinearLayout>

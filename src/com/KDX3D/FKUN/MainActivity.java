@@ -140,10 +140,10 @@ public class MainActivity extends Activity {
         boolean hasApp3d;  // 3D应用（SBS转立体）
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    private int lastOrientation = -1;
+
+    /** 主界面 UI 绑定（onCreate 与方向变化时调用，数据保留） */
+    private void initUI() {
         listView = (ListView) findViewById(R.id.list_apps);
         adapter = new AppAdapter(this);
         listView.setAdapter(adapter);
@@ -196,7 +196,7 @@ public class MainActivity extends Activity {
                     if (!isRoot()) {
                         b.setChecked(false);
                         exportGuardZip();
-                        new AlertDialog.Builder(MainActivity.this)
+                        new AlertDialog.Builder(MainActivity.this, R.style.AppDialog)
                                 .setTitle("需要 root 权限")
                                 .setMessage("进程守护通过 Magisk 模块实现，需要 root 权限。\n未获取到 root，模块已导出到 /storage/emulated/0/kdx3d_guard.zip\n可稍后在 Magisk 管理器 → 模块 → 从本地安装 手动刷入。")
                                 .setPositiveButton("知道了", null)
@@ -211,7 +211,7 @@ public class MainActivity extends Activity {
                     } else {
                         b.setChecked(false);
                         exportGuardZip();
-                        new AlertDialog.Builder(MainActivity.this)
+                        new AlertDialog.Builder(MainActivity.this, R.style.AppDialog)
                                 .setTitle("需要手动刷入模块")
                                 .setMessage("自动刷入失败。\n模块已导出到 /storage/emulated/0/kdx3d_guard.zip\n请在 Magisk 管理器 → 模块 → 从本地安装 选择它。")
                                 .setPositiveButton("知道了", null)
@@ -231,6 +231,24 @@ public class MainActivity extends Activity {
         setupPullRefresh();
 
         // 从配置文件恢复所有配置（覆盖更新后配置不丢）
+    }
+
+    @Override
+    public void onConfigurationChanged(android.content.res.Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // 方向变化：重新加载主界面布局（自适应横竖屏，数据保留）
+        if (newConfig.orientation != lastOrientation) {
+            lastOrientation = newConfig.orientation;
+            setContentView(R.layout.activity_main);
+            initUI();
+        }
+    }
+
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        initUI();
+        lastOrientation = getResources().getConfiguration().orientation;
         loadConfigFromFile();
         // 启动即同步一次（创建/更新配置文件，确保持久化）
         saveConfigToFile();
@@ -471,7 +489,7 @@ public class MainActivity extends Activity {
     /** 引导开启"使用情况访问"（前台应用检测需要） */
     private void requestUsageStatsPermission() {
         if (hasUsageStatsPermission()) return;
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.AppDialog)
                 .setTitle("需要「使用情况访问」权限")
                 .setMessage("悬浮条需要检测前台应用才能自动显示/隐藏。\n点击确定后在设置中允许「使用情况访问」。")
                 .setPositiveButton("去设置", new DialogInterface.OnClickListener() {
@@ -494,7 +512,7 @@ public class MainActivity extends Activity {
         final SharedPreferences sp = getSharedPreferences("floatbar", MODE_PRIVATE);
         if (sp.getBoolean("bg_prompted", false)) return;
         sp.edit().putBoolean("bg_prompted", true).apply();
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.AppDialog)
                 .setTitle("允许后台运行")
                 .setMessage("为保证悬浮条在游戏中不被系统清理，请在应用设置中允许「自启动/后台运行」。\n点击确定前往设置。")
                 .setPositiveButton("去设置", new DialogInterface.OnClickListener() {
@@ -531,7 +549,7 @@ public class MainActivity extends Activity {
 
     /** 悬浮窗权限引导（打开应用时申请） */
     private void requestOverlayPermission() {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.AppDialog)
                 .setTitle("需要悬浮窗权限")
                 .setMessage("3D深度悬浮窗需要悬浮窗权限才能在游戏/应用上方显示。\n点击确定后请在设置中允许「显示在其他应用上层」。")
                 .setPositiveButton("去授权", new DialogInterface.OnClickListener() {
@@ -697,8 +715,6 @@ public class MainActivity extends Activity {
                 appList.clear();
                 appList.addAll(list);
                 adapter.notifyDataSetChanged();
-                ((TextView) findViewById(R.id.tv_hint)).setText(
-                        "应用 " + appList.size() + " 个，" + cfgMap.size() + " 个已配置3D\n点击应用设置，保存后重启游戏生效");
             }
         }.execute();
     }
@@ -728,7 +744,7 @@ public class MainActivity extends Activity {
         TextView tvHint = (TextView) v.findViewById(R.id.tv_type_hint);
         tvHint.setText("选择类型后进入对应配置界面。\n3D游戏：.gles.cfg 识别串 + 3D深度\n3D应用：SBS画面转立体（视角/自动3D/悬浮按钮）\n删除配置后重新选择类型");
 
-        final AlertDialog typeDlg = new AlertDialog.Builder(this)
+        final AlertDialog typeDlg = new AlertDialog.Builder(this, R.style.AppDialog)
                 .setTitle("选择3D类型")
                 .setView(v)
                 .setPositiveButton("关闭", null)
@@ -867,15 +883,19 @@ public class MainActivity extends Activity {
             }
         } catch (Exception e) { }
 
-        RadioGroup rgVp = (RadioGroup) v.findViewById(R.id.rg_viewpoint);
-        ((RadioButton) v.findViewById(R.id.rb_vp1)).setChecked(viewpoint == 1);
-        ((RadioButton) v.findViewById(R.id.rb_vp2)).setChecked(viewpoint == 2);
+        final Spinner spVp = (Spinner) v.findViewById(R.id.sp_vp);
+        ArrayAdapter<String> vpAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item,
+                new String[]{"右左", "左右"});
+        vpAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spVp.setAdapter(vpAdapter);
+        spVp.setSelection(viewpoint == 1 ? 0 : 1);
 
         final Switch swAuto = (Switch) v.findViewById(R.id.sw_auto3d);
         final Spinner spMode = (Spinner) v.findViewById(R.id.sp_auto_mode);
         ArrayAdapter<String> modeAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item,
-                new String[]{"HSBS（半幅SBS）", "FSBS（全幅SBS）", "2D转3D"});
+                new String[]{"HSBS", "FSBS", "2D转3D"});
         modeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spMode.setAdapter(modeAdapter);
         spMode.setSelection(mode);
@@ -897,13 +917,13 @@ public class MainActivity extends Activity {
             }
         });
 
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.AppDialog)
                 .setTitle("3D应用设置")
                 .setView(v)
                 .setPositiveButton("保存", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface d, int which) {
-                        int vp = ((RadioButton) v.findViewById(R.id.rb_vp1)).isChecked() ? 1 : 2;
+                        int vp = spVp.getSelectedItemPosition() == 0 ? 1 : 2;
                         int autoV = swAuto.isChecked() ? 1 : 0;
                         int modeV = spMode.getSelectedItemPosition();
                         int btnV = swBtn.isChecked() ? 1 : 0;
@@ -1004,7 +1024,7 @@ public class MainActivity extends Activity {
                                         "已自动设置 SELinux 宽松，深度调节可用",
                                         Toast.LENGTH_SHORT).show();
                             } else {
-                                new AlertDialog.Builder(MainActivity.this)
+                                new AlertDialog.Builder(MainActivity.this, R.style.AppDialog)
                                         .setTitle("需要 root 权限")
                                         .setMessage("游戏深度调节需要设置 SELinux 为宽松，需要 root 权限。\n\n"
                                                 + "请授予 root 权限后重新开启，App 会自动设置。")
@@ -1132,8 +1152,8 @@ public class MainActivity extends Activity {
         });
         updateParamInfo(lib[curSelIdx[0]], tvParam);
 
-        new AlertDialog.Builder(this)
-                .setTitle("3D参数设置")
+        new AlertDialog.Builder(this, R.style.AppDialog)
+                .setTitle("3D游戏设置")
                 .setView(v)
                 .setPositiveButton("保存", new DialogInterface.OnClickListener() {
                     @Override
@@ -1310,7 +1330,7 @@ public class MainActivity extends Activity {
     /** 写入失败时询问是否重置 .gles.cfg（用户确认后才重置，不自动执行） */
     private void confirmResetGles() {
         try {
-            new AlertDialog.Builder(this)
+            new AlertDialog.Builder(this, R.style.AppDialog)
                     .setTitle("写入配置失败")
                     .setMessage(".gles.cfg 可能已损坏（无法写入）。\n是否重置配置文件？\n\n重置会清除所有3D游戏配置，需要重新套模板。")
                     .setPositiveButton("重置", new DialogInterface.OnClickListener() {
@@ -1392,18 +1412,18 @@ public class MainActivity extends Activity {
             }
             tvLabel.setText(info.label);
             tvPkg.setText(info.pkg);
-            // [3D] 标识分色：3D游戏=绿色，3D应用=橙色，两者都有=蓝色
-            if (info.hasCfg && info.hasApp3d) {
+            // [3D] 标识分色（Material 徽章）：3D游戏=绿，3D应用=橙（类型单选不共存）
+            if (info.hasCfg) {
                 tvTag.setText("[3D]");
-                tvTag.setTextColor(0xFF1565C0);
-            } else if (info.hasCfg) {
-                tvTag.setText("[3D]");
-                tvTag.setTextColor(0xFF2E7D32);
+                tvTag.setTextColor(0xFFFFFFFF);
+                tvTag.setBackgroundResource(R.drawable.badge_green);
             } else if (info.hasApp3d) {
                 tvTag.setText("[3D]");
-                tvTag.setTextColor(0xFFE65100);
+                tvTag.setTextColor(0xFFFFFFFF);
+                tvTag.setBackgroundResource(R.drawable.badge_orange);
             } else {
                 tvTag.setText("");
+                tvTag.setBackgroundResource(0);
             }
             return convertView;
         }

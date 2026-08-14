@@ -10,7 +10,12 @@
         android:layout_height="wrap_content"
         android:hint="搜索模板（如：盗墓、赛车、麻将…）"
         android:textSize="14sp"
-        android:singleLine="true"/>
+        android:singleLine="true"
+        android:paddingLeft="14dp"
+        android:paddingRight="14dp"
+        android:paddingTop="9dp"
+        android:paddingBottom="9dp"
+        android:background="@drawable/search_bg"/>
     <ListView
         android:id="@+id/lv_tmpl"
         android:layout_width="match_parent"
