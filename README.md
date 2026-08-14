@@ -152,7 +152,7 @@ python build.py
 <td align="center"><img src="screenshots/04-depth-adjust.png" width="130"/><br/><sub>4. 游戏立体深度调节</sub></td>
 <td align="center"><img src="screenshots/05-hsbs.png" width="130"/><br/><sub>5. HSBS（半幅SBS）</sub></td>
 <td align="center"><img src="screenshots/06-fsbs.png" width="130"/><br/><sub>6. FSBS（全幅SBS，不能全屏）</sub></td>
-<td align="center"><img src="screenshots/07-2d-to-3d.png" width="130"/><br/><sub>7. 2D转3D（简单算法分层）</sub></td>
+<td align="center"><img src="screenshots/07-2d-to-3d.png" width="130"/><br/><sub>7. 2D转3D（仅深度）</sub></td>
 </tr></table>
 
 - **1**：点击应用勾选类型——3D游戏（.gles.cfg）或 3D应用（SBS转立体），勾选即存默认配置
@@ -161,7 +161,7 @@ python build.py
 - **4**：游戏内半透明滑条实时调深度，靠边收缩、滑动唤出
 - **5**：HSBS 半幅 SBS——左右各占半屏合成立体
 - **6**：FSBS 全幅 SBS 无压缩；不能全屏（系统限制）
-- **7**：2D转3D——简单算法分层（非AI转换）
+- **7**：2D转3D——仅深度
 
 ---
 
