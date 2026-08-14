@@ -152,7 +152,7 @@ python build.py
 <td align="center"><img src="screenshots/04-depth-adjust.png" width="130"/><br/><sub>4. In-game depth adjust</sub></td>
 <td align="center"><img src="screenshots/05-hsbs.png" width="130"/><br/><sub>5. HSBS (half SBS)</sub></td>
 <td align="center"><img src="screenshots/06-fsbs.png" width="130"/><br/><sub>6. FSBS (no fullscreen)</sub></td>
-<td align="center"><img src="screenshots/07-2d-to-3d.png" width="130"/><br/><sub>7. 2D-to-3D (layering)</sub></td>
+<td align="center"><img src="screenshots/07-2d-to-3d.png" width="130"/><br/><sub>7. 2D-to-3D (depth only)</sub></td>
 </tr></table>
 
 - **1**: Choose type per app — 3D Game (.gles.cfg) or 3D App (SBS to 3D); checking saves defaults
@@ -161,7 +161,7 @@ python build.py
 - **4**: Translucent slider adjusts depth in-game; edge-collapse, tap/swipe to expand
 - **5**: HSBS half SBS — half-width frames combined into stereo
 - **6**: FSBS full SBS, no compression; cannot go fullscreen (system limitation)
-- **7**: 2D-to-3D via simple algorithm layering (not AI)
+- **7**: 2D-to-3D — depth only
 
 ---
 
